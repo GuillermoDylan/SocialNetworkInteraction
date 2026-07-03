@@ -1,0 +1,9 @@
+.story {
+    background: linear-gradient(to bottom left,
+            rgb(131, 58, 180),
+            rgb(221,42,123),
+            rgb(255, 255, 0));
+    padding: 2.5px;
+    border-radius: 100%;
+    overflow: hidden;
+}
