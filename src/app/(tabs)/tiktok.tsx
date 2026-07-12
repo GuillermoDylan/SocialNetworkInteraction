@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { View, FlatList, Dimensions, ViewToken } from "react-native";
+import { View, FlatList, Dimensions, ViewToken, NativeSyntheticEvent, NativeScrollEvent } from "react-native";
 import FeedItem from "~/src/app/components/tiktok/FeedItem";
 import CommentsSection from "../components/CommentsSection";
 import Video from "../model/Video";
@@ -27,7 +27,7 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
 
     const [likedPost, setLikedPost] = useState(false);
     const [commentedPost, setCommentedPost] = useState(false);
-    const [scrolled, setScrolled] = useState(false); // TODO
+    const [scrolled, setScrolled] = useState(false);
 
     const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
     const [likeCounts, setLikeCounts] = useState<Record<string, number>>(
@@ -57,18 +57,15 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
         setShowComments(true);
     };
 
-    // Ref so the identity never changes across renders — FlatList requires
-    // this to be stable or it throws/ignores updates. This is the reliable
-    // way to know which single item is actually on-screen, unlike scroll-end
-    // math which can miss short flicks or fire late.
+    // Drives activeIndex (used for video playback), which needs to react
+    // quickly/smoothly to whatever is currently on screen. Kept separate
+    // from "has the user actually navigated away from page 0" logic below,
+    // since that needs a settled, unambiguous signal instead.
     const onViewableItemsChanged = useRef(
         ({ viewableItems }: { viewableItems: ViewToken[] }) => {
             const firstVisible = viewableItems.find((v) => v.isViewable);
             if (firstVisible?.index != null) {
                 setActiveIndex(firstVisible.index);
-                if (firstVisible.index >= 1) {
-                    setScrolled(true);
-                }
             }
         }
     ).current;
@@ -77,6 +74,20 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
         itemVisiblePercentThreshold: 60,
         minimumViewTime: 100,
     }).current;
+
+    // Scroll-offset-based detection: only counts as "scrolled" once the
+    // FlatList has settled (momentum finished) on a page other than the
+    // first. This avoids relying on the viewability threshold, which can
+    // report transient/ambiguous states mid-swipe.
+    const onMomentumScrollEnd = useCallback(
+        (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+            const page = Math.round(e.nativeEvent.contentOffset.y / screenHeight);
+            if (page >= 1) {
+                setScrolled(true);
+            }
+        },
+        []
+    );
 
     const [ready, setReady] = useState(false);
 
@@ -104,7 +115,7 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
         console.log("Finished tracking for this scene");
         finishSubsceneTracking();
         onTasksCompleted();
-    }, [likedPost, commentedPost, onTasksCompleted]);
+    }, [likedPost, commentedPost, scrolled, onTasksCompleted]);
 
 
     return (
@@ -118,6 +129,7 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
                 decelerationRate="fast"
                 onViewableItemsChanged={onViewableItemsChanged}
                 viewabilityConfig={viewabilityConfig}
+                onMomentumScrollEnd={onMomentumScrollEnd}
                 getItemLayout={(_, index) => ({
                     length: screenHeight,
                     offset: screenHeight * index,
