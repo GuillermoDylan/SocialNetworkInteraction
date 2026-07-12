@@ -1,0 +1,965 @@
+/**
+ * Contains the global configuration and state of the tracking system.
+ */
+const VERSION = 4;
+
+const EVENT_ON_MOUSE_MOVE = 0;
+const EVENT_ON_CLICK = 1;
+const EVENT_ON_DOUBLE_CLICK = 2;
+const EVENT_ON_MOUSE_DOWN = 3;
+const EVENT_ON_MOUSE_UP = 4;
+const EVENT_ON_WHEEL = 5;
+const EVENT_CONTEXT_MENU = 6;
+const EVENT_WINDOW_SCROLL = 11;
+const EVENT_WINDOW_RESIZE = 12;
+const EVENT_KEY_DOWN = 13;
+const EVENT_KEY_PRESS = 14;
+const EVENT_KEY_UP = 15;
+const EVENT_FOCUS = 16;
+const EVENT_BLUR = 17;
+const EVENT_ON_CHANGE_SELECTION_OBJECT = 18;
+const EVENT_ON_CLICK_SELECTION_OBJECT = 19;
+const EVENT_POINTER_DOWN = 20;
+const EVENT_POINTER_UP = 21;
+const EVENT_POINTER_MOVE = 22;
+const EVENT_POINTER_CANCEL = 23;
+const EVENT_INIT_TRACKING = 100;
+const EVENT_TRACKING_END = 200;
+const COMPONENT_TEXT_FIELD = 1;
+const COMPONENT_COMBOBOX = 2;
+const COMPONENT_OPTION = 3;
+const COMPONENT_RADIO_BUTTON = 4;
+const COMPONENT_CHECK_BOX = 5;
+
+
+import { v4 as uuidva4 } from "uuid";
+
+/**
+ * Returns the persistent session user ID, creating one if it does not exist.
+ * The ID is stored in localStorage so it survives page reloads within the same session.
+ * @returns {string} UUID identifying the current user session.
+ */
+function createUser() {
+    if (localStorage.getItem("user") === null) {
+        localStorage.setItem("user", uuidva4());
+    }
+    return localStorage.getItem("user");
+}
+
+const user = createUser();
+
+let list = [];
+let sceneId = 0;
+let eventCounter = 0;
+let trackingOn = false;
+let sentRequest = 0;
+let pendingRequest = 0;
+let pendingBackgroundsDelivered = 0;
+let backgroundsDelivered = 0;
+let eventsDelivered = false;
+let finishedExperiment = false;
+let newPage = null;
+let emittingData = false;
+let recordBackground = true;
+let trackingAbortController = null;
+
+const elements = [];
+const TOP_LIMIT = 50;
+const idExperiment = 6;
+const urlBase = "https:\/\/156.35.163.141";
+const url = urlBase + '/TrackerServer/restws/track';
+const urlBackgroundTracker = urlBase + '/TrackerServer/restws/backgroundTracker';
+const urlRegisterComponent = urlBase + '/TrackerServer/restws/registerComponent';
+const urlRegisterUserData = urlBase + '/TrackerServer/restws/registerUserData';
+const urlDemographicData = urlBase + '/TrackerServer/restws/registerDemographicData';
+const urlExperimentStatus = urlBase + '/TrackerServer/restws/experiment/status/' + idExperiment;
+const urlBackgroundRecording = urlBase + '/TrackerServer/restws/experiment/backgroundRecording/' + idExperiment;
+
+/**
+ * Auxiliary and helper functions for the entire tracking system.
+ */
+
+/**
+ * Sends a POST request with a JSON body and returns the response as text.
+ * @param {string} url - Endpoint URL.
+ * @param {object} data - Object to serialize as JSON body.
+ * @returns {Promise<string>} Response body text.
+ * @throws {Error} If the response status is not OK.
+ */
+async function postJSON(url, data) {
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error(response.statusText);
+    return response.text();
+}
+
+/**
+ * Sends a GET request with query parameters and returns the response as text.
+ * @param {string} url - Endpoint URL (without query string).
+ * @param {object} params - Key-value pairs appended as query parameters.
+ * @returns {Promise<string>} Response body text.
+ * @throws {Error} If the response status is not OK.
+ */
+async function getWithParams(url, params) {
+    const query = new URLSearchParams(params).toString();
+    const response = await fetch(url + '?' + query);
+    if (!response.ok) throw new Error(response.statusText);
+    return response.text();
+}
+
+/**
+ * Returns the local UTC offset in hours (positive = east of UTC).
+ * @returns {number} Timezone offset in hours.
+ */
+function getTimezone() {
+    return (new Date()).getTimezoneOffset() / 60 * (-1);
+}
+
+/**
+ * Initializes a user session: checks experiment status, fetches background recording
+ * setting, and registers browser/device metadata with the tracker server.
+ * Must be called once before any tracking begins.
+ * @returns {Promise<void>}
+ */
+export async function startExperiment() {
+    console.log("Creating user session " + user);
+    await getExperimentStatus();
+    await getBackgroundRecordingStatus();
+    await registerUserData();
+}
+
+/**
+ * Marks the whole experiment as finished so the participant's session ID is removed
+ * from localStorage once the current page's pending requests complete, preventing it
+ * from being reused on a future visit.
+ *
+ * This is separate from finishTracking()/finishSubsceneTracking() (in
+ * tracker-events.js), which only end tracking for the current scene. In a
+ * multi-page/multi-scene experiment, call finishTracking() on every scene change, but
+ * call finishExperiment() exactly once, on the truly last page — otherwise the
+ * session ID is never cleaned up.
+ */
+export function finishExperiment() {
+    finishedExperiment = true;
+}
+
+/**
+ * Fetches the background recording setting for the current experiment and updates
+ * the global recordBackground flag. Silently ignores network errors.
+ * @returns {Promise<void>}
+ */
+async function getBackgroundRecordingStatus() {
+    try {
+        const response = await fetch(urlBackgroundRecording);
+        if (!response.ok) return;
+        const text = await response.text();
+        recordBackground = (text.trim() === 'true');
+    } catch {
+        // If check fails, recordBackground remains true
+        console.log("Failed to recordBackground")
+    }
+}
+
+/**
+ * Captures a screenshot of the current page via html2canvas and delivers it to the
+ * tracker server associated with the given scene. Normalizes the canvas to CSS pixel
+ * dimensions on HiDPI screens so coordinates match event positions.
+ * Does nothing if tracking is not emitting or background recording is disabled.
+ * @param {number} sceneId - ID of the scene being captured.
+ * @returns {Promise<void>}
+ */
+async function takeSnapshot(sceneId) {
+    if (!emittingData || !recordBackground) return;
+    try {
+        const dpr = window.devicePixelRatio || 1;
+        const rawCanvas = await html2canvas(document.body, { scale: 1 });
+
+        // html2canvas may render at physical pixels even with scale:1 on HiDPI screens.
+        // Normalize to CSS pixel dimensions so coordinates match event.pageX/pageY.
+        const cssWidth = Math.round(rawCanvas.width / dpr);
+        const cssHeight = Math.round(rawCanvas.height / dpr);
+        let finalCanvas = rawCanvas;
+        if (rawCanvas.width !== cssWidth || rawCanvas.height !== cssHeight) {
+            finalCanvas = document.createElement('canvas');
+            finalCanvas.width = cssWidth;
+            finalCanvas.height = cssHeight;
+            finalCanvas.getContext('2d').drawImage(rawCanvas, 0, 0, cssWidth, cssHeight);
+        }
+
+        console.log("Delivering background for scene " + sceneId);
+        await deliverSnapshot(sceneId, finalCanvas);
+    } catch (error) {
+        console.log("Error taking snapshot: " + error.message);
+    }
+}
+
+/**
+ * Uploads a canvas snapshot as a PNG data URL to the background tracker endpoint.
+ * Does nothing if tracking is not emitting.
+ * @param {number} sceneId - ID of the scene the snapshot belongs to.
+ * @param {HTMLCanvasElement} canvas - Canvas element to upload.
+ * @returns {Promise<void>}
+ */
+async function deliverSnapshot(sceneId, canvas) {
+    if (!emittingData) return;
+
+    const parametros = {
+        "timezone": getTimezone(),
+        "experiment": idExperiment,
+        "sceneId": sceneId,
+        "canvas": canvas.toDataURL("image/png"),
+        "timeStamp": Date.now(),
+        "sessionId": user
+    };
+
+    pendingBackgroundsDelivered++;
+    console.log("Sending background. Pending backgrounds: " + pendingBackgroundsDelivered + "/" + sentRequest);
+
+    try {
+        const responseText = await postJSON(urlBackgroundTracker, parametros);
+        backgroundsDelivered++;
+        console.log('Result: ' + responseText);
+    } catch (error) {
+        console.error("Error delivering snapshot: " + error.message);
+    } finally {
+        pendingBackgroundsDelivered--;
+        console.log("Call completed. Pending Backgrounds: " + pendingBackgroundsDelivered + "/" + backgroundsDelivered);
+    }
+}
+
+/**
+ * Collects and sends browser, device, and screen metadata for the current session
+ * to the tracker server. Does nothing if tracking is not emitting.
+ * @returns {Promise<void>}
+ */
+async function registerUserData() {
+    if (!emittingData) return;
+
+    const ua = navigator.userAgent;
+
+    let browserEngine = "Unknown";
+    if (ua.includes("Gecko/")) browserEngine = "Gecko";
+    else if (ua.includes("AppleWebKit/")) browserEngine = "Blink/WebKit";
+
+    const brandEntry = navigator.userAgentData?.brands?.find(b => !b.brand.includes("Not"));
+    const browserName = brandEntry?.brand ?? "Unknown";
+    const browserVersion1b = brandEntry?.version ?? "Unknown";
+
+    const parametros = {
+        "timezone": getTimezone(),
+        "timeOpened": new Date(),
+        "pageon": window.location.pathname,
+        "referrer": document.referrer,
+        "previousSites": history.length,
+        "browserVersion1a": ua,
+        "browserVersion1b": browserVersion1b,
+        "browserName": browserName,
+        "browserEngine": browserEngine,
+        "browserLanguage": navigator.language,
+        "browserOnline": navigator.onLine,
+        "browserPlatform": navigator.userAgentData?.platform ?? navigator.platform,
+        "javaEnabled": navigator.javaEnabled?.() ?? false,
+        "dataCookiesEnabled": navigator.cookieEnabled,
+        "dataStorage": typeof Storage !== "undefined" ? "localStorage available" : "not available",
+        "sizeScreenW": screen.width,
+        "sizeScreenH": screen.height,
+        "sizeDocW": document.body.clientWidth,
+        "sizeDocH": document.body.clientHeight,
+        "sizeInW": innerWidth,
+        "sizeInH": innerHeight,
+        "sizeAvailW": screen.availWidth,
+        "sizeAvailH": screen.availHeight,
+        "scrColorDepth": screen.colorDepth,
+        "scrPixelDepth": screen.pixelDepth,
+        "touchDevice": ('ontouchstart' in window || navigator.maxTouchPoints > 0),
+        "idExperiment": idExperiment,
+        "sessionId": user
+    };
+
+    const resultEl = document.getElementById("result");
+    if (resultEl) { resultEl.textContent = "Registering user data..."; }
+
+    try {
+        const responseText = await postJSON(urlRegisterUserData, parametros);
+        if (resultEl) { resultEl.textContent = responseText; }
+    } catch (error) {
+        console.log("Error: " + error.message);
+    }
+}
+
+/**
+ * Returns the ID of the scene currently being tracked.
+ * @returns {number} Current scene ID.
+ */
+export function getCurrentSceneId() {
+    console.log("CURRENT SCENE ID: " + sceneId);
+    return sceneId;
+}
+
+/**
+ * Fetches the current experiment status from the tracker server and updates
+ * the global emittingData flag. Silently ignores network errors.
+ * @returns {Promise<void>}
+ */
+async function getExperimentStatus() {
+    try {
+        const response = await fetch(urlExperimentStatus);
+        if (!response.ok) return;
+        const responseText = await response.text();
+        emittingData = (responseText === 'OPEN');
+    } catch {
+        // If check fails, emittingData remains false
+        console.log("Failed to getExperimentStatus")
+    }
+}
+
+/**
+ * Manages the registration and detection of interactive HTML elements on the interface.
+ */
+
+/**
+ * Represents a registered UI element with its bounding box and scene association.
+ */
+class Element {
+    /**
+     * @param {string} id - DOM element ID.
+     * @param {number} x - Left edge X coordinate (CSS pixels).
+     * @param {number} y - Top edge Y coordinate (CSS pixels).
+     * @param {number} xF - Right edge X coordinate (CSS pixels).
+     * @param {number} yF - Bottom edge Y coordinate (CSS pixels).
+     * @param {number} sceneId - Scene this element belongs to.
+     */
+    constructor(id, x, y, xF, yF, sceneId) {
+        this.id = id;
+        this.x = x;
+        this.y = y;
+        this.xF = xF;
+        this.yF = yF;
+        this.sceneId = sceneId;
+    }
+
+    /** @returns {number} The scene ID this element belongs to. */
+    getScene() {
+        return this.sceneId;
+    }
+
+    /**
+     * Returns true if the given point falls within this element's bounding box.
+     * @param {number} mX - X coordinate to test.
+     * @param {number} mY - Y coordinate to test.
+     * @returns {boolean}
+     */
+    isOver(mX, mY) {
+        return this.x < mX && mX < this.xF && this.y < mY && mY < this.yF;
+    }
+}
+
+/**
+ * Returns the ID of the registered element under the given coordinates in the current scene,
+ * or -1 if no element matches.
+ * @param {number} x - X coordinate (CSS pixels).
+ * @param {number} y - Y coordinate (CSS pixels).
+ * @returns {string|number} Element ID or -1.
+ */
+function detectElement(x, y) {
+    return elements.find(e => e.isOver(x, y) && e.sceneId === sceneId)?.id ?? -1;
+}
+
+/**
+ * Returns the ID of the registered element matching the given DOM ID in the current scene,
+ * or -1 if not found.
+ * @param {string} name - DOM element ID to look up.
+ * @returns {string|number} Element ID or -1.
+ */
+function detectElementByName(name) {
+    return elements.find(e => e.id === name && e.sceneId === sceneId)?.id ?? -1;
+}
+
+/**
+ * Adds an element to the local registry and attaches focus/blur listeners.
+ * Selection events (change, click) are also attached for combobox, option,
+ * radio button, and checkbox components.
+ * @param {string} id - DOM element ID.
+ * @param {number} x - Left edge X coordinate.
+ * @param {number} y - Top edge Y coordinate.
+ * @param {number} xF - Right edge X coordinate.
+ * @param {number} yF - Bottom edge Y coordinate.
+ * @param {number} typeId - Component type constant.
+ * @param {number} sceneId - Scene this element belongs to.
+ */
+export function registerElement(id, x, y, xF, yF, typeId, sceneId) {
+    elements.push(new Element(id, x, y, xF, yF, sceneId));
+    addFocusAndBlurEvents(id);
+    if (typeId === COMPONENT_COMBOBOX || typeId === COMPONENT_OPTION ||
+        typeId === COMPONENT_RADIO_BUTTON || typeId === COMPONENT_CHECK_BOX) {
+        addSelectionEvent(id);
+    }
+}
+
+/**
+ * Attaches focus and blur tracking listeners to the DOM element with the given ID.
+ * Does nothing if the element is not found in the document.
+ * @param {string} elementId - DOM element ID.
+ */
+export function addFocusAndBlurEvents(elementId) {
+    const element = document.getElementById(elementId);
+    if (element != null) {
+        element.addEventListener('focus', trackFocusEvent);
+        element.addEventListener('blur', trackBlurEvent);
+    }
+}
+
+/**
+ * Attaches change and click tracking listeners to the DOM element with the given ID.
+ * Used for interactive selection components (combobox, radio, checkbox).
+ * Does nothing if the element is not found in the document.
+ * @param {string} elementId - DOM element ID.
+ */
+function addSelectionEvent(elementId) {
+    const element = document.getElementById(elementId);
+    if (element != null) {
+        element.addEventListener('change', trackOnChangeSelectionEvent);
+        element.addEventListener('click', trackOnClickSelectionEvent);
+    }
+}
+
+/**
+ * Manages the capture and logging of all user events in the interface
+ * (mouse, keyboard, window, elements).
+ */
+
+/**
+ * Dispatches a DOM event to the tracking pipeline if tracking is active.
+ * @param {number} eventType - Event type constant (e.g. EVENT_ON_CLICK).
+ * @param {Event} event - Original DOM event providing coordinates and target info.
+ * @returns {Promise<void>}
+ */
+async function trackWithEvent(eventType, event) {
+    if (trackingOn) { await trackEventOverElement(eventType, event); }
+}
+
+/**
+ * Dispatches a synthetic event (no DOM event) to the tracking pipeline if tracking is active.
+ * Used for events that carry no pointer or keyboard data (e.g. INIT, END markers).
+ * @param {number} eventType - Event type constant.
+ * @returns {Promise<void>}
+ */
+async function trackEvent(eventType) {
+    if (trackingOn) { await trackEventOverElement(eventType, null); }
+}
+
+/**
+ * Builds a tracking item from the event and appends it to the pending list.
+ * Flushes the list to the server when it reaches TOP_LIMIT entries.
+ * @param {number} eventType - Event type constant.
+ * @param {Event|null} event - DOM event, or null for synthetic events.
+ * @returns {Promise<void>}
+ */
+async function trackEventOverElement(eventType, event) {
+    const item = {};
+    item.id = eventCounter++;
+    item.sceneId = sceneId;
+    item.sessionId = user;
+    item.eventType = eventType;
+    item.timeStamp = Date.now();
+
+    item.x = (event && typeof event.pageX === 'number') ? event.pageX : -1;
+    item.y = (event && typeof event.pageY === 'number') ? event.pageY : -1;
+
+    item.keyValueEvent = -1;
+    item.keyCodeEvent = -1;
+
+    const isKeyEvent = eventType === EVENT_KEY_DOWN || eventType === EVENT_KEY_PRESS || eventType === EVENT_KEY_UP;
+    const isTargetEvent = eventType === EVENT_FOCUS || eventType === EVENT_BLUR
+        || eventType === EVENT_ON_CHANGE_SELECTION_OBJECT || eventType === EVENT_ON_CLICK_SELECTION_OBJECT;
+
+    if (event && (isKeyEvent || isTargetEvent)) {
+        if (isKeyEvent && event.target && event.target.type !== 'password') {
+            item.keyValueEvent = event.key;
+        }
+        item.elementId = detectElementByName(event.target.id);
+    } else {
+        item.elementId = detectElement(item.x, item.y);
+    }
+    list.push(item);
+
+    if (list.length >= TOP_LIMIT) {
+        const deliverPackage = list;
+        list = [];
+        await deliverData(deliverPackage);
+    }
+}
+
+/**
+ * Starts tracking for the given scene: refreshes experiment status, registers all
+ * DOM event listeners, and emits the INIT_TRACKING event.
+ * Cancels any previously active tracking session before starting a new one.
+ * @param {number} _sceneId - ID of the scene to start tracking.
+ * @returns {Promise<void>}
+ */
+export async function initTracking(_sceneId) {
+    // Cancel previous listeners if they exist
+    if (trackingAbortController) {
+        trackingAbortController.abort();
+    }
+    trackingAbortController = new AbortController();
+    const signal = trackingAbortController.signal;
+
+    await getExperimentStatus();
+    trackingOn = true;
+    sceneId = _sceneId;
+    console.log("Initializing tracking for scene " + _sceneId);
+    await trackEvent(EVENT_INIT_TRACKING);
+
+    const target = parent;
+    target.addEventListener('scroll', trackWindowScroll, { signal });
+    target.addEventListener('resize', trackWindowResize, { signal });
+    target.addEventListener('mousemove', trackMouseMovement, { signal });
+    target.addEventListener('mousedown', trackMouseDown, { signal });
+    target.addEventListener('mouseup', trackMouseUp, { signal });
+    target.addEventListener('click', trackClick, { signal });
+    target.addEventListener('dblclick', trackDblclick, { signal });
+    target.addEventListener('contextmenu', trackContextmenu, { signal });
+    target.addEventListener('wheel', trackWheel, { signal });
+    target.addEventListener('keydown', trackEventKeydown, { signal });
+    target.addEventListener('keypress', trackEventKeypress, { signal });
+    target.addEventListener('keyup', trackEventKeyup, { signal });
+    // Pointer Events API — touch interactions only
+    target.addEventListener('pointerdown', trackPointerDown, { signal });
+    target.addEventListener('pointerup', trackPointerUp, { signal });
+    target.addEventListener('pointermove', trackPointerMove, { signal });
+    target.addEventListener('pointercancel', trackPointerCancel, { signal });
+}
+
+/** @param {MouseEvent} event */ function trackMouseMovement(event) { trackWithEvent(EVENT_ON_MOUSE_MOVE, event).catch(console.error); }
+/** @param {MouseEvent} event */ function trackClick(event) { trackWithEvent(EVENT_ON_CLICK, event).catch(console.error); }
+/** @param {MouseEvent} event */ function trackDblclick(event) { trackWithEvent(EVENT_ON_DOUBLE_CLICK, event).catch(console.error); }
+/** @param {MouseEvent} event */ function trackMouseDown(event) { trackWithEvent(EVENT_ON_MOUSE_DOWN, event).catch(console.error); }
+/** @param {MouseEvent} event */ function trackMouseUp(event) { trackWithEvent(EVENT_ON_MOUSE_UP, event).catch(console.error); }
+/** @param {WheelEvent} event */ function trackWheel(event) { trackWithEvent(EVENT_ON_WHEEL, event).catch(console.error); }
+/** @param {MouseEvent} event */ function trackContextmenu(event) { trackWithEvent(EVENT_CONTEXT_MENU, event).catch(console.error); }
+/** @param {Event} event */ function trackWindowScroll(event) { trackWithEvent(EVENT_WINDOW_SCROLL, event).catch(console.error); }
+/** @param {UIEvent} event */ function trackWindowResize(event) { trackWithEvent(EVENT_WINDOW_RESIZE, event).catch(console.error); }
+/** @param {KeyboardEvent} event */ function trackEventKeydown(event) { trackWithEvent(EVENT_KEY_DOWN, event).catch(console.error); }
+/** @param {KeyboardEvent} event */ function trackEventKeypress(event) { trackWithEvent(EVENT_KEY_PRESS, event).catch(console.error); }
+/** @param {KeyboardEvent} event */ function trackEventKeyup(event) { trackWithEvent(EVENT_KEY_UP, event).catch(console.error); }
+/** @param {PointerEvent} event */ function trackPointerDown(event) { if (event.pointerType !== 'mouse') { trackWithPointerEvent(EVENT_POINTER_DOWN, event).catch(console.error); } }
+/** @param {PointerEvent} event */ function trackPointerUp(event) { if (event.pointerType !== 'mouse') { trackWithPointerEvent(EVENT_POINTER_UP, event).catch(console.error); } }
+/** @param {PointerEvent} event */ function trackPointerMove(event) { if (event.pointerType !== 'mouse') { trackWithPointerEvent(EVENT_POINTER_MOVE, event).catch(console.error); } }
+/** @param {PointerEvent} event */ function trackPointerCancel(event) { if (event.pointerType !== 'mouse') { trackWithPointerEvent(EVENT_POINTER_CANCEL, event).catch(console.error); } }
+/** @param {FocusEvent} event */ function trackFocusEvent(event) { trackWithEvent(EVENT_FOCUS, event).catch(console.error); }
+/** @param {FocusEvent} event */ function trackBlurEvent(event) { trackWithEvent(EVENT_BLUR, event).catch(console.error); }
+/** @param {Event} event */ function trackOnChangeSelectionEvent(event) { trackWithEvent(EVENT_ON_CHANGE_SELECTION_OBJECT, event).catch(console.error); }
+/** @param {MouseEvent} event */ function trackOnClickSelectionEvent(event) { trackWithEvent(EVENT_ON_CLICK_SELECTION_OBJECT, event).catch(console.error); }
+
+/**
+ * Ends tracking for the current scene: emits the TRACKING_END event, captures a
+ * background snapshot, flushes remaining events, then navigates to _newPage once
+ * all pending requests complete. Also removes the DOM event listeners registered by
+ * initTracking (they would otherwise only be removed by the next initTracking call).
+ *
+ * This does NOT mark the whole experiment as finished — it only ends the current
+ * scene. If this is the last page of the experiment, you must also call
+ * finishExperiment() (in tracker-helpers.js) once, otherwise the participant's
+ * session ID is never removed from localStorage and will be reused on a future visit.
+ * @param {string|null} _newPage - URL to navigate to after all data is delivered, or null.
+ * @returns {Promise<void>}
+ */
+export async function finishTracking(_newPage) {
+    await trackEvent(EVENT_TRACKING_END);
+    trackingOn = false;
+    if (trackingAbortController) {
+        trackingAbortController.abort();
+        trackingAbortController = null;
+    }
+    await takeSnapshot(sceneId);
+    await deliverData(list);
+    list = [];
+    newPage = _newPage;
+    checkReadyToLeave();
+}
+
+/**
+ * Checks whether all pending event and background requests have completed.
+ * If not, retries after 2 seconds. Once clear, cleans up the user session if the
+ * experiment is finished and navigates to the next page if one was set.
+ */
+function checkReadyToLeave() {
+    if (!eventsDelivered || pendingRequest > 0) {
+        console.log("Not ready to leave page, events still pending");
+    } else {
+        if (pendingBackgroundsDelivered > 0) {
+            console.log("Not ready to leave page, " + pendingBackgroundsDelivered + " backgrounds still pending");
+            setTimeout(() => { checkReadyToLeave(); }, 2000);
+            return;
+        }
+        console.log("Ready to leave page, pending request:" + pendingRequest + ", pending backgrounds " + pendingBackgroundsDelivered + "/" + backgroundsDelivered);
+        if (finishedExperiment) {
+            console.log("Experiment finished, deleting user " + localStorage.getItem("user"));
+            localStorage.removeItem("user");
+        }
+        if (newPage != null) {
+            window.location.href = newPage;
+        }
+    }
+}
+
+/**
+ * Ends tracking for a sub-scene without navigating: emits TRACKING_END, captures a
+ * snapshot, and flushes remaining events. Use when transitioning between sub-scenes
+ * within the same page. Also removes the DOM event listeners registered by
+ * initTracking — call initTracking again before tracking the next sub-scene.
+ * @returns {Promise<void>}
+ */
+export async function finishSubsceneTracking() {
+    await trackEvent(EVENT_TRACKING_END);
+    trackingOn = false;
+    if (trackingAbortController) {
+        trackingAbortController.abort();
+        trackingAbortController = null;
+    }
+    await takeSnapshot(sceneId);
+    await deliverData(list);
+    list = [];
+}
+
+/**
+ * Registers a UI component with the tracker server and adds it to the local element
+ * registry so it can be detected by pointer coordinates.
+ * @param {number} sceneId - Scene the component belongs to.
+ * @param {string} componentId - DOM element ID of the component.
+ * @param {number} x - Left edge X coordinate (CSS pixels).
+ * @param {number} y - Top edge Y coordinate (CSS pixels).
+ * @param {number} xF - Right edge X coordinate (CSS pixels).
+ * @param {number} yF - Bottom edge Y coordinate (CSS pixels).
+ * @param {number} typeId - Component type constant (e.g. COMPONENT_TEXT_FIELD).
+ * @param {string} componentAssociated - ID of a related/parent component, if any.
+ * @returns {Promise<void>}
+ */
+async function registerComponent(sceneId, componentId, x, y, xF, yF, typeId, componentAssociated) {
+    if (!emittingData) return;
+
+    registerElement(componentId, x, y, xF, yF, typeId, sceneId);
+    const parametros = {
+        "timezone": getTimezone(),
+        "sceneId": sceneId,
+        "componentId": componentId,
+        "x": Math.round(x),
+        "y": Math.round(y),
+        "xF": Math.round(xF),
+        "yF": Math.round(yF),
+        "timeStamp": Date.now(),
+        "idExperiment": idExperiment,
+        "typeId": typeId,
+        "componentAssociated": componentAssociated,
+        "sessionId": user
+    };
+
+    try {
+        await postJSON(urlRegisterComponent, parametros);
+    } catch (error) {
+        console.log("Error registering component: " + error.message);
+    }
+}
+
+/**
+ * Sends a single chunk of events to the tracker server with up to 3 automatic retries
+ * on failure (delays: 500 ms, 1500 ms, 4000 ms). Updates pendingRequest and
+ * eventsDelivered counters and triggers checkReadyToLeave on completion.
+ * @param {object[]} chunk - Array of tracking event items to deliver.
+ * @returns {Promise<void>}
+ */
+async function deliverChunk(chunk) {
+    if (!emittingData) {
+        if (pendingRequest === 0) { eventsDelivered = true; }
+        return;
+    }
+
+    const parametros = {
+        "timezone": getTimezone(),
+        "list": chunk,
+        "idExperiment": idExperiment,
+        "sessionId": user
+    };
+
+    pendingRequest++;
+    sentRequest++;
+    console.log("Sending request. Pending requests: " + pendingRequest + "/" + sentRequest);
+
+    const RETRY_DELAYS = [500, 1500, 4000];
+    try {
+        let lastError;
+        for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt++) {
+            if (attempt > 0) {
+                await new Promise(r => setTimeout(r, RETRY_DELAYS[attempt - 1]));
+                console.warn(`Retrying chunk delivery (attempt ${attempt + 1}/${RETRY_DELAYS.length + 1})...`);
+            }
+            try {
+                const responseText = await postJSON(url, parametros);
+                console.log('Result: ' + responseText);
+                return;
+            } catch (error) {
+                lastError = error;
+            }
+        }
+        console.error(`Chunk of ${chunk.length} events lost after ${RETRY_DELAYS.length + 1} attempts: ${lastError.message}`);
+    } finally {
+        pendingRequest--;
+        console.log("Call completed. Pending Requests: " + pendingRequest + "/" + sentRequest);
+        if (pendingRequest === 0) { eventsDelivered = true; }
+        checkReadyToLeave();
+    }
+}
+
+/**
+ * Captures a Pointer Events API event (touch or stylus).
+ * Encodes pointer-specific data into existing fields:
+ *   keyValueEvent → "pointerType:contactWidth:contactHeight:pointerId"
+ *   keyCodeEvent  → Math.round(pressure * 1000)  (0 = no pressure, 1000 = max pressure)
+ * @param {number} eventType - Pointer event type constant.
+ * @param {PointerEvent} event - Original pointer DOM event.
+ * @returns {Promise<void>}
+ */
+async function trackWithPointerEvent(eventType, event) {
+    if (!trackingOn) return;
+
+    const item = {};
+    item.id = eventCounter++;
+    item.sceneId = sceneId;
+    item.sessionId = user;
+    item.eventType = eventType;
+    item.timeStamp = Date.now();
+    item.x = Math.round(event.pageX);
+    item.y = Math.round(event.pageY);
+    item.keyValueEvent = `${event.pointerType}:${Math.round(event.width ?? 0)}:${Math.round(event.height ?? 0)}:${event.pointerId ?? 0}`;
+    item.keyCodeEvent = Math.round((event.pressure ?? 0) * 1000);
+    item.elementId = detectElement(item.x, item.y);
+
+    list.push(item);
+
+    if (list.length >= TOP_LIMIT) {
+        const deliverPackage = list;
+        list = [];
+        await deliverData(deliverPackage);
+    }
+}
+
+/**
+ * Splits a list of events into chunks of at most TOP_LIMIT items and delivers them
+ * concurrently via deliverChunk.
+ * @param {object[]} list - Full list of tracking event items to deliver.
+ * @returns {Promise<void>}
+ */
+async function deliverData(list) {
+    const promises = [];
+    let chunk = [];
+    for (const item of list) {
+        chunk.push(item);
+        if (chunk.length >= TOP_LIMIT) {
+            promises.push(deliverChunk(chunk));
+            chunk = [];
+        }
+    }
+    if (chunk.length > 0) {
+        promises.push(deliverChunk(chunk));
+    }
+    await Promise.all(promises);
+}
+
+/**
+ * Provides functions to fetch and graphically visualize the user trace.
+ * It also includes the necessary methods to register demographic data (String, Number, Date) from the user.
+ */
+
+/**
+ * Fetches the tracking event list for a session/scene and draws it on the canvas.
+ * @param {string} sessionId - User session ID.
+ * @param {number} sceneId - Scene ID to retrieve tracking data for.
+ * @param {boolean} [showLoading=true] - Whether to show a loading message in the result element.
+ * @returns {Promise<void>}
+ */
+async function getTracking(sessionId, sceneId, showLoading = true) {
+    if (!emittingData) return;
+
+    const parametros = {
+        "sessionId": sessionId,
+        "sceneId": sceneId,
+        "idExperiment": idExperiment
+    };
+    const resultEl = document.getElementById("result");
+    if (showLoading && resultEl) {
+        resultEl.textContent = "Procesando, espere por favor...";
+    }
+    try {
+        const responseText = await getWithParams(url, parametros);
+        if (resultEl) { resultEl.textContent = responseText; }
+        paintTracking(responseText);
+    } catch (error) {
+        console.error("Error getting tracking: " + error.message);
+    }
+}
+
+/**
+ * Fetches and overlays both the background screenshot and the tracking trace on the canvas
+ * for the given session and scene. Both requests run concurrently.
+ * @param {string} sessionId - User session ID.
+ * @param {number} sceneId - Scene ID.
+ * @returns {Promise<void>}
+ */
+async function showTrace(sessionId, sceneId) {
+    if (!emittingData) return;
+
+    const resultEl = document.getElementById("result");
+    if (resultEl) { resultEl.innerHTML = "Procesando, espere por favor..."; }
+
+    try {
+        await Promise.all([
+            getBackground(sessionId, sceneId),
+            getTracking(sessionId, sceneId, false)
+        ]);
+    } catch (error) {
+        console.error("Error in showTrace: " + error.message);
+    }
+}
+
+/**
+ * Fetches the background screenshot for a session/scene and draws it on the canvas element
+ * with id "myCanvas".
+ * @param {string} sessionId - User session ID.
+ * @param {number} sceneId - Scene ID.
+ * @returns {Promise<void>}
+ */
+async function getBackground(sessionId, sceneId) {
+    if (!emittingData) return;
+
+    const parametros = {
+        "sessionId": sessionId,
+        "sceneId": sceneId,
+        "idExperiment": idExperiment
+    };
+
+    try {
+        const responseText = await getWithParams(urlBackgroundTracker, parametros);
+        const img = new Image();
+        img.src = responseText;
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        img.onload = function () {
+            if (ctx) {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+            }
+        };
+    } catch (error) {
+        console.log("Error: " + error.message);
+    }
+}
+
+/**
+ * Parses a JSON tracking response and draws each event as a colored dot on the
+ * canvas element with id "myCanvas". Color encodes the event type.
+ * @param {string} response - JSON string with a `list` array of event objects.
+ */
+function paintTracking(response) {
+    const c = document.getElementById("myCanvas");
+    const ctx = c.getContext("2d");
+    let responseJSON;
+    try {
+        responseJSON = JSON.parse(response);
+    } catch (error) {
+        console.error("Error parsing tracking response: " + error.message);
+        return;
+    }
+    responseJSON.list.forEach(function (item) {
+        ctx.beginPath();
+        ctx.arc(item['x'], item['y'], 1, 0, 2 * Math.PI);
+        ctx.strokeStyle = getColor(item['eventType']);
+        ctx.stroke();
+    });
+}
+
+/**
+ * Returns the hex color associated with an event type for canvas visualization.
+ * @param {number} eventType - Event type constant.
+ * @returns {string} CSS hex color string.
+ */
+function getColor(eventType) {
+    switch (eventType) {
+        case EVENT_ON_MOUSE_MOVE: return "#FF0000";
+        case EVENT_ON_CLICK: return "#FFF000";
+        case EVENT_ON_DOUBLE_CLICK: return "#FFFF00";
+        case EVENT_ON_MOUSE_DOWN: return "#FFFFF0";
+        case EVENT_ON_MOUSE_UP: return "#FF00FF";
+        case EVENT_INIT_TRACKING: return "#74FF33";
+        case EVENT_TRACKING_END: return "#336BFF";
+        default: return "#000F00";
+    }
+}
+
+/**
+ * Sends a demographic data value to the tracker server under the specified field name.
+ * @param {number} id - Demographic data field ID.
+ * @param {string} fieldName - Payload key for the value ("stringValue", "numberValue", or "dateValue").
+ * @param {string|number} value - The value to submit.
+ * @returns {Promise<void>}
+ */
+async function postDemographicData(id, fieldName, value) {
+    const parametros = {
+        "timezone": getTimezone(),
+        "id": id,
+        "idExperiment": idExperiment,
+        "sessionId": user
+    };
+    parametros[fieldName] = value;
+    await postAJAXDemographicData(parametros);
+}
+
+/**
+ * Submits a string demographic data value.
+ * @param {number} id - Demographic data field ID.
+ * @param {string} value - String value to submit.
+ * @returns {Promise<void>}
+ */
+export async function postNumberDD(id, value) { await postDemographicData(id, "numberValue", value); }
+
+/**
+ * Submits a numeric demographic data value.
+ * @param {number} id - Demographic data field ID.
+ * @param {number} value - Numeric value to submit.
+ * @returns {Promise<void>}
+ */
+export async function postStringDD(id, value) { await postDemographicData(id, "stringValue", value); }
+
+/**
+ * Submits a date demographic data value.
+ * @param {number} id - Demographic data field ID.
+ * @param {string} value - Date value to submit (ISO string or similar).
+ * @returns {Promise<void>}
+ */
+export async function postDateDD(id, value) { await postDemographicData(id, "dateValue", value); }
+
+/**
+ * Low-level POST for demographic data. Does nothing if tracking is not emitting.
+ * @param {object} parametros - Fully assembled payload to send to the demographic data endpoint.
+ * @returns {Promise<void>}
+ */
+async function postAJAXDemographicData(parametros) {
+    if (!emittingData) return;
+
+    try {
+        await postJSON(urlDemographicData, parametros);
+    } catch (error) {
+        console.log("Error posting demographic data: " + error.message);
+    }
+}
+
+/* --- Demographic data functions --- */
+export function registerID(value) { postStringDD(47, value); }
+export function registerSexo(value) { postStringDD(48, value); }
+export function registerEdad(value) { postNumberDD(49, value); }
+export function registerNacionalidad(value) { postStringDD(50, value); }
+

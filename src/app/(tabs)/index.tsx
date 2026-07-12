@@ -1,33 +1,75 @@
-import { FlatList, ScrollView, View } from "react-native";
+import { FlatList } from "react-native";
 import posts from "~/assets/data/posts.json"
 import PostListItem from "../components/PostListItem";
-import StoryListItem from "../components/StoryListItem";
+import { useEffect, useState } from "react";
+import { initTracking, startExperiment, finishSubsceneTracking } from "~/assets/tracker/tracker-agent.js";
 
-const users = [posts[0].user, posts[1].user]
 
-export default function FeedScreen() {
+// derive unique users from posts (preserve first occurrence order)
+const users = posts.reduce((acc: any[], p: any) => {
+    if (!acc.find((u) => u.id === p.user.id)) acc.push(p.user)
+    return acc
+}, [])
+
+type FeedScreenProps = {
+    onTasksCompleted: () => void;
+}
+
+export default function FeedScreen({ onTasksCompleted }: FeedScreenProps) {
+
+    const [likedPost, setLikedPost] = useState(false);
+    const [commentedPost, setCommentedPost] = useState(false);
+    const [scrolled, setScrolled] = useState(false); // TODO
+
+
+    const [ready, setReady] = useState(false);
+
+    useEffect(() => {
+
+        let alive = true;
+
+        (async () => {
+            try {
+                await startExperiment();
+                await initTracking(0);
+            } catch (error) {
+                // handle or ignore
+                console.error("Tracking init failed on index tab:", error);
+            } finally {
+                if (alive) setReady(true);
+            }
+        })();
+
+        return () => {
+            alive = false;
+        };
+    }, [])
+
+    useEffect(() => {
+        if (!likedPost || !commentedPost) return;
+
+        console.log("Finished tracking for this scene");
+        finishSubsceneTracking();
+        onTasksCompleted();
+    }, [likedPost, commentedPost, onTasksCompleted]);
+
+
+    if (!ready) {
+        return null;
+    }
+
     return (
-        <ScrollView className="bg-white">
-            <FlatList
-                data={users}
-                renderItem={({ item }) => <StoryListItem user={item} />}
-                contentContainerStyle={{
-                    display: "flex",
-                    flexDirection: "row",
-                    width: "100%"
-                }}
-                />
-            <FlatList
-                data={posts}
-                renderItem={({ item }) => <PostListItem post={item} />}
-                contentContainerStyle={{
-                    gap: 10,
-                    maxWidth: 512,
-                    alignSelf: 'center',
-                    width: '100%',
-                }}
-                showsVerticalScrollIndicator={false}
-            />
-        </ScrollView>
+        <FlatList
+            className="bg-white"
+            data={posts}
+            renderItem={({ item }) => <PostListItem post={item} setLikedPost={setLikedPost} setCommentedPost={setCommentedPost} />}
+            contentContainerStyle={{
+                gap: 10,
+                maxWidth: 512,
+                alignSelf: 'center',
+                width: '100%',
+            }}
+            showsVerticalScrollIndicator={false}
+        />
     );
 }

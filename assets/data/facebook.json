@@ -1,0 +1,58 @@
+[
+  {
+    "id": "1",
+    "type": "text",
+    "image_url": null,
+    "caption": "Just got back from the best hiking trip of my life. Can't wait to plan the next one!",
+    "likes": 24,
+    "comments": [],
+    "user": {
+      "id": "u1",
+      "avatar_url": null,
+      "image_url": "https://dylan.carvajal.es/wp-content/uploads/2023/07/IMG_4237-1024x967.jpg",
+      "username": "GDylan"
+    }
+  },
+  {
+    "id": "2",
+    "type": "pic",
+    "image_url": "IMG_1483",
+    "caption": "Sunday brunch with the family \u2764\ufe0f",
+    "likes": 87,
+    "comments": [],
+    "user": {
+      "id": "u2",
+      "avatar_url": null,
+      "image_url": "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fi.pinimg.com%2Foriginals%2F98%2F05%2Fd5%2F9805d5953c207afbe80e72d5a078fd0e.jpg&f=1&nofb=1&ipt=4499b00921078c82a10f65eecbdbf3b15facc75be4eb400639404cf7b2c9c86e",
+      "username": "Garfield"
+    }
+  },
+  {
+    "id": "3",
+    "type": "text",
+    "image_url": null,
+    "caption": "Does anyone have recommendations for a good plumber in the area? Kitchen sink is leaking again.",
+    "likes": 3,
+    "comments": [],
+    "user": {
+      "id": "u3",
+      "avatar_url": null,
+      "image_url": "https://picsum.photos/seed/avatar3/200/200",
+      "username": "jazzy_travels"
+    }
+  },
+  {
+    "id": "4",
+    "type": "pic",
+    "image_url": "IMG_1498",
+    "caption": "New workshop setup is finally done!",
+    "likes": 56,
+    "comments": [],
+    "user": {
+      "id": "u1",
+      "avatar_url": null,
+      "image_url": "https://dylan.carvajal.es/wp-content/uploads/2023/07/IMG_4237-1024x967.jpg",
+      "username": "GDylan"
+    }
+  }
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "1",
+    "type": "pic",
+    "video_url": "cat",
+    "caption": "Just another day",
+    "likes": 5,
+    "comments": [
+      {
+        "id": "1",
+        "username": "123",
+        "text": "HAHAHAH",
+        "likes": 123123
+      }
+    ],
+    "user": {
+      "id": "u1",
+      "avatar_url": "IMG_1483",
+      "image_url": "IMG_1483",
+      "username": "GDylan"
+    }
+  },
+  {
+    "id": "2",
+    "type": "pic",
+    "video_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    "caption": "Hehe",
+    "likes": 5,
+    "comments": [
+      {
+        "id": "2",
+        "username": "1233",
+        "text": "HAHAeHAH",
+        "likes": 123123
+      }
+    ],
+    "user": {
+      "id": "u1",
+      "avatar_url": "IMG_1491",
+      "image_url": "IMG_1491",
+      "username": "GDylan"
+    }
+  }
+]
