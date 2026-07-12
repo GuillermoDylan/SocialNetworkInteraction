@@ -40,5 +40,26 @@
       "image_url": "IMG_1491",
       "username": "GDylan"
     }
+  },
+  {
+    "id": "3",
+    "type": "pic",
+    "video_url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    "caption": "Another video",
+    "likes": 3,
+    "comments": [
+      {
+        "id": "4",
+        "username": "mNAU",
+        "text": "nICE",
+        "likes": 1
+      }
+    ],
+    "user": {
+      "id": "u1",
+      "avatar_url": "IMG_1491",
+      "image_url": "IMG_1491",
+      "username": "GDylan"
+    }
   }
 ]

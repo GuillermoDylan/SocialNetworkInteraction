@@ -110,6 +110,12 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
     }, [])
 
     useEffect(() => {
+        if (activeIndex >= 1) {
+            setScrolled(true);
+        }
+    }, [activeIndex]);
+
+    useEffect(() => {
         if (!likedPost || !commentedPost || !scrolled) return;
 
         console.log("Finished tracking for this scene");
