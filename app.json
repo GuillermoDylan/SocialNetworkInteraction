@@ -14,6 +14,9 @@
         "ITSAppUsesNonExemptEncryption": false
       }
     },
+    "experiments": {
+      "baseUrl": "/SocialNetworkInteraction"
+    },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
