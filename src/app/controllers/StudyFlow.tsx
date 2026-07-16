@@ -5,12 +5,15 @@ import FeedScreen from "../(tabs)/index"; // your existing Profile/feed componen
 import ForYouFeed from "../(tabs)/tiktok"; // your TikTok feed component
 import FacebookFeed from "../(tabs)/facebook";
 
+import { useTranslation } from "react-i18next";
+
 type Step = "intro1" | "instagram" | "intro2" | "tiktok" | "intro3" | "facebook" | "done";
 
 
 export default function StudyFlow() {
     const [step, setStep] = useState<Step>("intro1");
     const [showButton, setShowButton] = useState(false);
+    const { t } = useTranslation();
 
     switch (step) {
         case "intro1":
@@ -30,7 +33,7 @@ export default function StudyFlow() {
                         // logic decides the user is done with this screen.
                         onTasksCompleted={() => setShowButton(true)}
                     />
-                    {showButton && <Button title="btn.continue" onPress={() => setStep("intro2")} />}
+                    {showButton && <Button title={t("btn.continue")} onPress={() => setStep("intro2")} />}
                 </View>
             );
 
@@ -52,7 +55,7 @@ export default function StudyFlow() {
                     <ForYouFeed
                         onTasksCompleted={() => setShowButton(true)}
                     />
-                    {showButton && <Button title="btn.continue" onPress={() => setStep("intro3")} />}
+                    {showButton && <Button title={t("btn.continue")} onPress={() => setStep("intro3")} />}
                 </View>
             );
 
@@ -74,7 +77,7 @@ export default function StudyFlow() {
                     <FacebookFeed
                         onTasksCompleted={() => setShowButton(true)}
                     />
-                    {showButton && <Button title="btn.continue" onPress={() => setStep("done")} />}
+                    {showButton && <Button title={t("btn.continue")} onPress={() => setStep("done")} />}
                 </View>
             );
 

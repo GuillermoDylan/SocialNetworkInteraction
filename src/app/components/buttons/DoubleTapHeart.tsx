@@ -11,8 +11,8 @@ export default function DoubleTapHeart({ progress, x, y }: DoubleTapHeartProps) 
     const style = useAnimatedStyle(() => {
         return {
             position: "absolute",
-            left: x - 40,
-            top: y - 40,
+            left: x - 20,
+            top: y - 20,
             transform: [
                 {
                     scale: interpolate(
@@ -29,7 +29,7 @@ export default function DoubleTapHeart({ progress, x, y }: DoubleTapHeartProps) 
 
     return (
         <Animated.View style={style} pointerEvents="none">
-            <Ionicons name="heart" size={20} color="white" />
+            <Ionicons name="heart" size={40} color="white" />
         </Animated.View>
     );
 }

@@ -37,13 +37,7 @@ export default function PostListItem({ post, setCommentedPost, setLikedPost }: P
         setShowHeart(true);
         heartProgress.value = 0;
         heartProgress.value = withSequence(
-            withTiming(1, { duration: 250 }),
-            withTiming(1, { duration: 400 }),
-            withTiming(0, { duration: 250 }, (finished) => {
-                if (finished) {
-                    runOnJSSetShowHeart(false);
-                }
-            })
+            withTiming(1, { duration: 600 }),
         );
         setLikedPost(true);
     };
@@ -55,12 +49,12 @@ export default function PostListItem({ post, setCommentedPost, setLikedPost }: P
 
     const handleImagePress = (event: any) => {
         const now = Date.now();
-        const { locationX, locationY } = event.nativeEvent;
+        const { x, y, offsetX, offsetY } = event.nativeEvent;
 
         if (lastTap && now - lastTap < 300) {
             liked.value = withSpring(1);
             console.log(event.nativeEvent)
-            triggerDoubleTapHeart(locationX, locationY);
+            triggerDoubleTapHeart(offsetX, offsetY);
             setLastTap(null);
         } else {
             setLastTap(now);
