@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 
 import facebookPosts from "~/assets/data/facebook.json";
 import FacebookPost from "../model/FacebookPost";
-import { FlatList, View } from "react-native";
+import { ActivityIndicator, FlatList, View } from "react-native";
 import FacebookPostCard from "../components/facebook/FacebookPostCard";
 import CommentsSection from "../components/CommentsSection";
 import { finishExperiment, finishSubsceneTracking, finishTracking, initTracking } from "~/assets/tracker/tracker-agent";
@@ -83,6 +83,14 @@ export default function FacebookFeed({ onTasksCompleted }: FacebookFeedProps) {
         setActivePost(post);
         setShowComments(true);
     };
+
+    if (!ready) {
+        return (
+            <View className="flex-1 items-center justify-center bg-white">
+                <ActivityIndicator size="large" />
+            </View>
+        );
+    }
 
     return (
         <View className="flex-1 bg-gray-100">

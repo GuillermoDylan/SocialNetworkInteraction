@@ -1,4 +1,4 @@
-import { FlatList } from "react-native";
+import { ActivityIndicator, FlatList, View } from "react-native";
 import posts from "~/assets/data/posts.json"
 import PostListItem from "../components/PostListItem";
 import { useEffect, useState } from "react";
@@ -55,7 +55,11 @@ export default function FeedScreen({ onTasksCompleted }: FeedScreenProps) {
 
 
     if (!ready) {
-        return null;
+        return (
+            <View className="flex-1 items-center justify-center bg-white">
+                <ActivityIndicator size="large" />
+            </View>
+        );
     }
 
     return (

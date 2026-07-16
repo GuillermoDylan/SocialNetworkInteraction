@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { View, FlatList, Dimensions, ViewToken, NativeSyntheticEvent, NativeScrollEvent } from "react-native";
+import { View, FlatList, Dimensions, ViewToken, NativeSyntheticEvent, NativeScrollEvent, ActivityIndicator } from "react-native";
 import FeedItem from "~/src/app/components/tiktok/FeedItem";
 import CommentsSection from "../components/CommentsSection";
 import Video from "../model/Video";
@@ -123,6 +123,13 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
         onTasksCompleted();
     }, [likedPost, commentedPost, scrolled, onTasksCompleted]);
 
+    if (!ready) {
+        return (
+            <View className="flex-1 items-center justify-center bg-white">
+                <ActivityIndicator size="large" />
+            </View>
+        );
+    }
 
     return (
         <View className="flex-1 bg-black">
