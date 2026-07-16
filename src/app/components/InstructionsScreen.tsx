@@ -1,4 +1,5 @@
-import { View, Text, Pressable, SafeAreaView } from "react-native";
+import { View, Text, Pressable } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context"
 import { useTranslation } from "react-i18next";
 
 type InstructionScreenProps = {
@@ -11,7 +12,7 @@ type InstructionScreenProps = {
 export default function InstructionScreen({
   title,
   body,
-  buttonLabel = "btn.continue",
+  buttonLabel,
   onContinue,
 }: InstructionScreenProps) {
   const { t } = useTranslation();
@@ -23,11 +24,13 @@ export default function InstructionScreen({
         <Text className="text-base text-gray-700 text-center leading-6">{t(body)}</Text>
       </View>
 
-      <View className="px-6 pb-10">
-        <Pressable onPress={onContinue} className="bg-black rounded-full py-4 items-center">
-          <Text className="text-white font-bold text-base">{t(buttonLabel)}</Text>
-        </Pressable>
-      </View>
+      {buttonLabel ? (
+        <View className="px-6 pb-10">
+          <Pressable onPress={onContinue} className="bg-black rounded-full py-4 items-center">
+            <Text className="text-white font-bold text-base">{t(buttonLabel)}</Text>
+          </Pressable>
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 }

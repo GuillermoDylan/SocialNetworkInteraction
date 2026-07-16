@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { View, Text, Image, Dimensions, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useSharedValue, withSpring, withTiming } from "react-native-reanimated";
+import { useSharedValue, withSequence, withSpring, withTiming } from "react-native-reanimated";
 import AnimatedIconToggle from "~/src/app/components/buttons/AnimatedIconToggle";
 import FeedVideo from "./FeedVideo";
 import Video from "~/src/app/model/Video";
 import { resolveLocalImageSource } from "~/src/app/utils/localImages";
+import DoubleTapHeart from "../buttons/DoubleTapHeart";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -28,10 +29,17 @@ export default function FeedItem({
     commentCount,
     isActive,
 }: FeedItemProps) {
+
     const heartActive = useSharedValue(liked ? 1 : 0);
     const doubleTapProgress = useSharedValue(0);
     const [tapPos, setTapPos] = useState({ x: screenWidth / 2, y: screenHeight / 2 });
     const [isPaused, setIsPaused] = useState(false);
+
+    const [showHeart, setShowHeart] = useState(false);
+    const heartProgress = useSharedValue(0);
+    const [heartPosition, setHeartPosition] = useState({ x: 0, y: 0 });
+    const [lastTap, setLastTap] = useState<number | null>(null);
+
 
     const triggerLike = (fromDoubleTap = false) => {
         if (!liked) {
@@ -50,19 +58,52 @@ export default function FeedItem({
         triggerLike(true);
     };
 
+    const handleImagePress = (event: any) => {
+        const now = Date.now();
+        const { x, y, offsetX, offsetY } = event.nativeEvent;
+
+        if (lastTap && now - lastTap < 300) {
+            liked = true;
+            console.log(event.nativeEvent)
+            triggerDoubleTapHeart(offsetX, offsetY);
+            setLastTap(null);
+        } else {
+            setLastTap(now);
+        }
+    };
+
+    const triggerDoubleTapHeart = (x: number, y: number) => {
+        setHeartPosition({ x, y });
+        setShowHeart(true);
+        heartProgress.value = 0;
+        heartProgress.value = withSequence(
+            withTiming(1, { duration: 600 }),
+        );
+        onToggleLike();
+    };
+
     return (
         <View style={{ width: screenWidth, height: screenHeight }} className="bg-black">
-            <FeedVideo
-                videoUrl={video.video_url}
-                isActive={isActive}
-                isPaused={isPaused}
-                onTogglePause={() => setIsPaused((p) => !p)}
-                onDoubleTapLike={handleDoubleTapLike}
-                doubleTapProgress={doubleTapProgress}
-                tapPos={tapPos}
-                width={screenWidth}
-                height={screenHeight}
-            />
+            <Pressable onPress={handleImagePress}>
+                <FeedVideo
+                    videoUrl={video.video_url}
+                    isActive={isActive}
+                    isPaused={isPaused}
+                    onTogglePause={() => setIsPaused((p) => !p)}
+                    onDoubleTapLike={handleDoubleTapLike}
+                    doubleTapProgress={doubleTapProgress}
+                    tapPos={tapPos}
+                    width={screenWidth}
+                    height={screenHeight}
+                />
+                {showHeart && (
+                    <DoubleTapHeart
+                        progress={heartProgress}
+                        x={heartPosition.x}
+                        y={heartPosition.y}
+                    />
+                )}
+            </Pressable>
 
             {/* Bottom-left: user info + caption */}
             <View className="absolute bottom-24 left-3 right-20">
