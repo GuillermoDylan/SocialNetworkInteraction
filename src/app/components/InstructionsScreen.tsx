@@ -15,13 +15,20 @@ export default function InstructionScreen({
   buttonLabel,
   onContinue,
 }: InstructionScreenProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  const toggleLanguage = () => {
+    i18n.changeLanguage(i18n.language === "en" ? "ch" : "en");
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <View className="flex-1 justify-center px-6">
         <Text className="text-2xl font-bold text-center mb-4">{t(title)}</Text>
         <Text className="text-base text-gray-700 text-center leading-6">{t(body)}</Text>
+        <Pressable onPress={toggleLanguage} className="bg-gray-200 rounded-full py-4 items-center mb-3 w-36 mt-4 self-center">
+          <Text className="text-black font-bold text-base">{i18n.language === "en" ? "Switch to CH" : "Switch to EN"}</Text>
+        </Pressable>
       </View>
 
       {buttonLabel ? (
