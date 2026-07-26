@@ -110,7 +110,7 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
     }, [])
 
     useEffect(() => {
-        if (activeIndex >= 1) {
+        if (activeIndex >= 2) {
             setScrolled(true);
         }
     }, [activeIndex]);

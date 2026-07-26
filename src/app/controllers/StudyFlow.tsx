@@ -89,6 +89,7 @@ export default function StudyFlow() {
                 <InstructionScreen
                     title="end.title"
                     body="end.text"
+                    isFinish={true}
                     onContinue={() => { }}
                 />
             );

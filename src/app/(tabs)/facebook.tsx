@@ -11,7 +11,7 @@ import FacebookPost from "../model/FacebookPost";
 import { ActivityIndicator, FlatList, View } from "react-native";
 import FacebookPostCard from "../components/facebook/FacebookPostCard";
 import CommentsSection from "../components/CommentsSection";
-import { finishExperiment, finishSubsceneTracking, finishTracking, initTracking } from "~/assets/tracker/tracker-agent";
+import { finishExperiment, finishSubsceneTracking, finishTracking, initTracking } from "~/assets/tracker/scriptTest";
 
 const fakeProfile = {
     username: "GDylan",
@@ -58,7 +58,7 @@ export default function FacebookFeed({ onTasksCompleted }: FacebookFeedProps) {
     }, [])
 
     useEffect(() => {
-        if (!likedPost || !commentedPost) return;
+        if (!likedPost || !commentedPost || !scrolled) return;
 
         console.log("Finished tracking for this scene");
         finishTracking(null);
@@ -95,6 +95,13 @@ export default function FacebookFeed({ onTasksCompleted }: FacebookFeedProps) {
     return (
         <View className="flex-1 bg-gray-100">
             <FlatList
+                onScroll={(event) => {
+                    const scrollY = event.nativeEvent.contentOffset.y;
+
+                    if (!scrolled && scrollY > 300) {
+                        setScrolled(true);
+                    }
+                }}
                 data={facebookPosts}
                 keyExtractor={(post) => post.id}
                 showsVerticalScrollIndicator={false}

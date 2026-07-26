@@ -2,14 +2,10 @@ import { ActivityIndicator, FlatList, View } from "react-native";
 import posts from "~/assets/data/posts.json"
 import PostListItem from "../components/PostListItem";
 import { useEffect, useState } from "react";
-import { initTracking, startExperiment, finishSubsceneTracking } from "~/assets/tracker/tracker-agent.js";
+import { initTracking, startExperiment, finishSubsceneTracking, registerid } from "~/assets/tracker/scriptTest.js";
+import { registerID } from "~/assets/tracker/tracker-agent";
 
-
-// derive unique users from posts (preserve first occurrence order)
-const users = posts.reduce((acc: any[], p: any) => {
-    if (!acc.find((u) => u.id === p.user.id)) acc.push(p.user)
-    return acc
-}, [])
+import { v4 as uuidva4 } from "uuid";
 
 type FeedScreenProps = {
     onTasksCompleted: () => void;
@@ -32,6 +28,7 @@ export default function FeedScreen({ onTasksCompleted }: FeedScreenProps) {
             try {
                 await startExperiment();
                 await initTracking(0);
+                await registerID(uuidva4());
             } catch (error) {
                 // handle or ignore
                 console.error("Tracking init failed on index tab:", error);
@@ -46,12 +43,12 @@ export default function FeedScreen({ onTasksCompleted }: FeedScreenProps) {
     }, [])
 
     useEffect(() => {
-        if (!likedPost || !commentedPost) return;
+        if (!likedPost || !commentedPost || !scrolled) return;
 
         console.log("Finished tracking for this scene");
         finishSubsceneTracking();
         onTasksCompleted();
-    }, [likedPost, commentedPost, onTasksCompleted]);
+    }, [likedPost, commentedPost, scrolled, onTasksCompleted]);
 
 
     if (!ready) {
@@ -64,6 +61,13 @@ export default function FeedScreen({ onTasksCompleted }: FeedScreenProps) {
 
     return (
         <FlatList
+            onScroll={(event) => {
+                const scrollY = event.nativeEvent.contentOffset.y;
+
+                if (!scrolled && scrollY > 300) {
+                    setScrolled(true);
+                }
+            }}
             className="bg-white"
             data={posts}
             renderItem={({ item }) => <PostListItem post={item} setLikedPost={setLikedPost} setCommentedPost={setCommentedPost} />}
