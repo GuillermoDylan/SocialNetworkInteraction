@@ -51,6 +51,10 @@ import img47 from "~/assets/images/IMG_8.jpeg";
 import img48 from "~/assets/images/IMG_9.jpeg";
 
 import cat from "~/assets/videos/cat.mp4";
+import VID_1 from "~/assets/videos/VID_1.mp4";
+import VID_2 from "~/assets/videos/VID_2.mp4";
+import VID_3 from "~/assets/videos/VID_3.mp4";
+import VID_4 from "~/assets/videos/VID_4.mp4";
 
 const localImageMap: Record<string, ImageSourcePropType> = {
   IMG_1: img1,
@@ -105,6 +109,10 @@ const localImageMap: Record<string, ImageSourcePropType> = {
 
 const localVideoMap: Record<string, number> = {
   cat: cat,
+  VID_1: VID_1,
+  VID_2: VID_2,
+  VID_3: VID_3,
+  VID_4: VID_4,
 }
 
 export function resolveLocalImageSource(value?: string): ImageSourcePropType {
@@ -114,5 +122,5 @@ export function resolveLocalImageSource(value?: string): ImageSourcePropType {
 
 export function resolveLocalVideoSource(value?: string): VideoSource {
   const source = value ? localVideoMap[value] : undefined;
-  return source ?? { uri: value ?? "" };
+  return source ?? {uri: value ?? ""};
 }
