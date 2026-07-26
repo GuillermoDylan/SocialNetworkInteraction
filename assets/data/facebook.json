@@ -9,14 +9,14 @@
     "user": {
       "id": "u1",
       "avatar_url": null,
-      "image_url": "https://dylan.carvajal.es/wp-content/uploads/2023/07/IMG_4237-1024x967.jpg",
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
       "username": "GDylan"
     }
   },
   {
     "id": "2",
     "type": "pic",
-    "image_url": "IMG_1483",
+    "image_url": "IMG_9",
     "caption": "Sunday brunch with the family \u2764\ufe0f",
     "likes": 87,
     "comments": [],
@@ -37,22 +37,638 @@
     "user": {
       "id": "u3",
       "avatar_url": null,
-      "image_url": "https://picsum.photos/seed/avatar3/200/200",
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
       "username": "jazzy_travels"
     }
   },
   {
     "id": "4",
     "type": "pic",
-    "image_url": "IMG_1498",
+    "image_url": "IMG_8",
     "caption": "New workshop setup is finally done!",
     "likes": 56,
     "comments": [],
     "user": {
       "id": "u1",
       "avatar_url": null,
-      "image_url": "https://dylan.carvajal.es/wp-content/uploads/2023/07/IMG_4237-1024x967.jpg",
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
       "username": "GDylan"
+    }
+  },
+  {
+    "id": "5",
+    "type": "text",
+    "image_url": null,
+    "caption": "Finally finished reading that book everyone recommended. Totally worth it.",
+    "likes": 19,
+    "comments": [],
+    "user": {
+      "id": "u4",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "bookwanderer"
+    }
+  },
+  {
+    "id": "6",
+    "type": "pic",
+    "image_url": "IMG_10",
+    "caption": "Golden hour never disappoints 🌅",
+    "likes": 132,
+    "comments": [],
+    "user": {
+      "id": "u5",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "skyshots"
+    }
+  },
+  {
+    "id": "7",
+    "type": "pic",
+    "image_url": "IMG_11",
+    "caption": "Coffee tastes better with this view.",
+    "likes": 65,
+    "comments": [],
+    "user": {
+      "id": "u6",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "morningbrew"
+    }
+  },
+  {
+    "id": "8",
+    "type": "text",
+    "image_url": null,
+    "caption": "Anyone else already planning their next vacation?",
+    "likes": 17,
+    "comments": [],
+    "user": {
+      "id": "u7",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "travelbug"
+    }
+  },
+  {
+    "id": "9",
+    "type": "pic",
+    "image_url": "IMG_12",
+    "caption": "Fresh paint, fresh start.",
+    "likes": 42,
+    "comments": [],
+    "user": {
+      "id": "u8",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "homestyle"
+    }
+  },
+  {
+    "id": "10",
+    "type": "pic",
+    "image_url": "IMG_13",
+    "caption": "Weekend adventure with friends!",
+    "likes": 89,
+    "comments": [],
+    "user": {
+      "id": "u9",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "outdooralex"
+    }
+  },
+  {
+    "id": "11",
+    "type": "text",
+    "image_url": null,
+    "caption": "What's everyone's favorite comfort food?",
+    "likes": 12,
+    "comments": [],
+    "user": {
+      "id": "u10",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "foodlover"
+    }
+  },
+  {
+    "id": "12",
+    "type": "pic",
+    "image_url": "IMG_14",
+    "caption": "Found this hidden gem while exploring downtown.",
+    "likes": 104,
+    "comments": [],
+    "user": {
+      "id": "u11",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "citywalker"
+    }
+  },
+  {
+    "id": "13",
+    "type": "pic",
+    "image_url": "IMG_15",
+    "caption": "Nature always helps me recharge.",
+    "likes": 91,
+    "comments": [],
+    "user": {
+      "id": "u12",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "greenescape"
+    }
+  },
+  {
+    "id": "14",
+    "type": "text",
+    "image_url": null,
+    "caption": "Started learning guitar this week. My fingers hurt already 😅",
+    "likes": 36,
+    "comments": [],
+    "user": {
+      "id": "u13",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "newstrings"
+    }
+  },
+  {
+    "id": "15",
+    "type": "pic",
+    "image_url": "IMG_16",
+    "caption": "Homemade pizza night!",
+    "likes": 143,
+    "comments": [],
+    "user": {
+      "id": "u14",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "kitchenstories"
+    }
+  },
+  {
+    "id": "16",
+    "type": "pic",
+    "image_url": "IMG_17",
+    "caption": "My desk setup keeps getting better.",
+    "likes": 77,
+    "comments": [],
+    "user": {
+      "id": "u15",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "techcorner"
+    }
+  },
+  {
+    "id": "17",
+    "type": "pic",
+    "image_url": "IMG_18",
+    "caption": "Sunsets like this make everything better.",
+    "likes": 158,
+    "comments": [],
+    "user": {
+      "id": "u16",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "lenslife"
+    }
+  },
+  {
+    "id": "18",
+    "type": "text",
+    "image_url": null,
+    "caption": "Looking for podcast recommendations for long drives.",
+    "likes": 14,
+    "comments": [],
+    "user": {
+      "id": "u17",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "roadtripper"
+    }
+  },
+  {
+    "id": "19",
+    "type": "pic",
+    "image_url": "IMG_19",
+    "caption": "Tried a new hiking trail today.",
+    "likes": 84,
+    "comments": [],
+    "user": {
+      "id": "u18",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "mountainmike"
+    }
+  },
+  {
+    "id": "20",
+    "type": "pic",
+    "image_url": "IMG_20",
+    "caption": "Bloom season is finally here 🌸",
+    "likes": 128,
+    "comments": [],
+    "user": {
+      "id": "u19",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "flowerdays"
+    }
+  },
+  {
+    "id": "21",
+    "type": "pic",
+    "image_url": "IMG_21",
+    "caption": "Morning run complete!",
+    "likes": 55,
+    "comments": [],
+    "user": {
+      "id": "u20",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "fitlife"
+    }
+  },
+  {
+    "id": "22",
+    "type": "pic",
+    "image_url": "IMG_22",
+    "caption": "This dessert looked too good not to share.",
+    "likes": 173,
+    "comments": [],
+    "user": {
+      "id": "u21",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "sweettooth"
+    }
+  },
+  {
+    "id": "23",
+    "type": "pic",
+    "image_url": "IMG_23",
+    "caption": "Can't believe this view is only an hour from home.",
+    "likes": 98,
+    "comments": [],
+    "user": {
+      "id": "u22",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "weekendexplorer"
+    }
+  },
+  {
+    "id": "24",
+    "type": "pic",
+    "image_url": "IMG_24",
+    "caption": "New sneakers, first run!",
+    "likes": 67,
+    "comments": [],
+    "user": {
+      "id": "u23",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "runnerjoe"
+    }
+  },
+  {
+    "id": "25",
+    "type": "pic",
+    "image_url": "IMG_25",
+    "caption": "A little weekend DIY project.",
+    "likes": 61,
+    "comments": [],
+    "user": {
+      "id": "u24",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "makermax"
+    }
+  },
+  {
+    "id": "26",
+    "type": "pic",
+    "image_url": "IMG_26",
+    "caption": "Exploring somewhere new today.",
+    "likes": 116,
+    "comments": [],
+    "user": {
+      "id": "u25",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "nomadkate"
+    }
+  },
+  {
+    "id": "27",
+    "type": "pic",
+    "image_url": "IMG_27",
+    "caption": "Rainy days have their own charm.",
+    "likes": 49,
+    "comments": [],
+    "user": {
+      "id": "u26",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "cozyvibes"
+    }
+  },
+  {
+    "id": "28",
+    "type": "pic",
+    "image_url": "IMG_28",
+    "caption": "Just another beautiful afternoon.",
+    "likes": 81,
+    "comments": [],
+    "user": {
+      "id": "u27",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "dailycapture"
+    }
+  },
+  {
+    "id": "29",
+    "type": "pic",
+    "image_url": "IMG_29",
+    "caption": "Couldn't resist taking this photo.",
+    "likes": 94,
+    "comments": [],
+    "user": {
+      "id": "u28",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "pixelpath"
+    }
+  },
+  {
+    "id": "30",
+    "type": "pic",
+    "image_url": "IMG_30",
+    "caption": "Perfect weather for being outside.",
+    "likes": 102,
+    "comments": [],
+    "user": {
+      "id": "u29",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "weekendvibes"
+    }
+  },
+  {
+    "id": "31",
+    "type": "pic",
+    "image_url": "IMG_31",
+    "caption": "Today's favorite moment.",
+    "likes": 58,
+    "comments": [],
+    "user": {
+      "id": "u30",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "simplemoments"
+    }
+  },
+  {
+    "id": "32",
+    "type": "pic",
+    "image_url": "IMG_32",
+    "caption": "Weekend market finds!",
+    "likes": 74,
+    "comments": [],
+    "user": {
+      "id": "u31",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "marketlover"
+    }
+  },
+  {
+    "id": "33",
+    "type": "pic",
+    "image_url": "IMG_33",
+    "caption": "Small moments make the best memories.",
+    "likes": 109,
+    "comments": [],
+    "user": {
+      "id": "u32",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "memoriesdaily"
+    }
+  },
+  {
+    "id": "34",
+    "type": "pic",
+    "image_url": "IMG_34",
+    "caption": "Fresh air and good company.",
+    "likes": 95,
+    "comments": [],
+    "user": {
+      "id": "u33",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "wanderwithme"
+    }
+  },
+  {
+    "id": "35",
+    "type": "pic",
+    "image_url": "IMG_35",
+    "caption": "Trying out my new camera lens.",
+    "likes": 87,
+    "comments": [],
+    "user": {
+      "id": "u34",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "photoframe"
+    }
+  },
+  {
+    "id": "36",
+    "type": "pic",
+    "image_url": "IMG_36",
+    "caption": "Freshly baked and still warm.",
+    "likes": 141,
+    "comments": [],
+    "user": {
+      "id": "u35",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "bakerscorner"
+    }
+  },
+  {
+    "id": "37",
+    "type": "pic",
+    "image_url": "IMG_37",
+    "caption": "Morning walk before work.",
+    "likes": 53,
+    "comments": [],
+    "user": {
+      "id": "u36",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "earlybird"
+    }
+  },
+  {
+    "id": "38",
+    "type": "pic",
+    "image_url": "IMG_38",
+    "caption": "Couldn't ask for a better weekend.",
+    "likes": 112,
+    "comments": [],
+    "user": {
+      "id": "u37",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "happyfeet"
+    }
+  },
+  {
+    "id": "39",
+    "type": "pic",
+    "image_url": "IMG_39",
+    "caption": "This place deserves another visit.",
+    "likes": 69,
+    "comments": [],
+    "user": {
+      "id": "u38",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "discovermore"
+    }
+  },
+  {
+    "id": "40",
+    "type": "pic",
+    "image_url": "IMG_40",
+    "caption": "Life's better outdoors.",
+    "likes": 127,
+    "comments": [],
+    "user": {
+      "id": "u39",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "wildpaths"
+    }
+  },
+  {
+    "id": "41",
+    "type": "pic",
+    "image_url": "IMG_41",
+    "caption": "One more photo because why not?",
+    "likes": 80,
+    "comments": [],
+    "user": {
+      "id": "u40",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "frameit"
+    }
+  },
+  {
+    "id": "42",
+    "type": "pic",
+    "image_url": "IMG_42",
+    "caption": "Views that never get old.",
+    "likes": 145,
+    "comments": [],
+    "user": {
+      "id": "u41",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "visualdiary"
+    }
+  },
+  {
+    "id": "43",
+    "type": "pic",
+    "image_url": "IMG_43",
+    "caption": "A quiet afternoon well spent.",
+    "likes": 71,
+    "comments": [],
+    "user": {
+      "id": "u42",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "calmcorner"
+    }
+  },
+  {
+    "id": "44",
+    "type": "pic",
+    "image_url": "IMG_44",
+    "caption": "Another item crossed off the bucket list!",
+    "likes": 166,
+    "comments": [],
+    "user": {
+      "id": "u43",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "bucketgoals"
+    }
+  },
+  {
+    "id": "45",
+    "type": "pic",
+    "image_url": "IMG_45",
+    "caption": "Weekend vibes only.",
+    "likes": 92,
+    "comments": [],
+    "user": {
+      "id": "u44",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "lazyweekends"
+    }
+  },
+  {
+    "id": "46",
+    "type": "pic",
+    "image_url": "IMG_46",
+    "caption": "Found my new favorite spot.",
+    "likes": 99,
+    "comments": [],
+    "user": {
+      "id": "u45",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "hiddenplaces"
+    }
+  },
+  {
+    "id": "47",
+    "type": "pic",
+    "image_url": "IMG_47",
+    "caption": "The colors today were unreal.",
+    "likes": 154,
+    "comments": [],
+    "user": {
+      "id": "u46",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "colorhunter"
+    }
+  },
+  {
+    "id": "48",
+    "type": "pic",
+    "image_url": "IMG_48",
+    "caption": "Ending the day with this amazing view.",
+    "likes": 138,
+    "comments": [],
+    "user": {
+      "id": "u47",
+      "avatar_url": null,
+      "image_url": "https://thispersondoesnotexist.com/random-person.jpeg",
+      "username": "eveninglight"
     }
   }
 ]

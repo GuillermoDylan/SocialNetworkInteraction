@@ -46,7 +46,7 @@ export default function FacebookPostCard({
             {/* Header: avatar + username */}
             <View className="flex-row items-center px-3 py-3">
                 <Image
-                    source={resolveLocalImageSource(post.user?.image_url)}
+                    source={{uri: post.user?.image_url}}
                     style={{ width: 40, height: 40, borderRadius: 20 }}
                 />
                 <View className="ml-3 flex-1">

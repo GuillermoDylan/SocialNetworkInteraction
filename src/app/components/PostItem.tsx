@@ -9,18 +9,18 @@ import PostUser from "../model/PostUser";
 import { useSharedValue, withSpring } from "react-native-reanimated";
 import CommentsSection from "./CommentsSection";
 
-import img1483 from "~/assets/images/IMG_1483.jpeg";
-import img1491 from "~/assets/images/IMG_1491.jpeg";
-import img1498 from "~/assets/images/IMG_1498.jpeg";
-import img1581 from "~/assets/images/IMG_1581.jpeg";
-import img1597 from "~/assets/images/IMG_1597.jpeg";
+import img1483 from "~/assets/images/IMG_1.jpeg";
+import img1491 from "~/assets/images/IMG_2.jpeg";
+import img1498 from "~/assets/images/IMG_3.jpeg";
+import img1581 from "~/assets/images/IMG_4.jpeg";
+import img1597 from "~/assets/images/IMG_5.jpeg";
 
 const imageMap = {
-  "1": img1483,
-  "2": img1491,
-  "3": img1498,
-  "4": img1581,
-  "5": img1597,
+    "pic1": img1483,
+    "pic2": img1491,
+    "pic3": img1498,
+    "pic4": img1581,
+    "pic5": img1597,
 };
 
 type PostItemProps = {
@@ -53,7 +53,7 @@ export default function PostItem({ setSelectedPost, likedPosts, toggleLike, sele
     return (
         <ScrollView className="flex-1 bg-white">
             {/* Modal header */}
-            <View className="flex-row items-center gap-3 p-3 border-b border-gray-300">
+            <View className="flex-row items-center gap-3 p-3 border-b border-gray-300" nativeID={selectedPost.id}>
                 <Pressable onPress={() => setSelectedPost(null)}>
                     <Text className="text-3xl font-bold">‹</Text>
                 </Pressable>

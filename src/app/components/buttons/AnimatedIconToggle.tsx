@@ -12,6 +12,7 @@ type AnimatedIconToggleProps = {
     outlineIcon: React.ReactNode;
     filledIcon: React.ReactNode;
     className?: string;
+    id: string;
 };
 
 export default function AnimatedIconToggle({
@@ -20,6 +21,7 @@ export default function AnimatedIconToggle({
     outlineIcon,
     filledIcon,
     className,
+    id
 }: AnimatedIconToggleProps) {
     const outlineStyle = useAnimatedStyle(() => {
         return {
@@ -39,7 +41,7 @@ export default function AnimatedIconToggle({
     });
 
     return (
-        <Pressable onPress={onPress} className={className}>
+        <Pressable onPress={onPress} className={className} nativeID={"like-" + id}>
             <Animated.View style={[StyleSheet.absoluteFill, outlineStyle]}>
                 {outlineIcon}
             </Animated.View>

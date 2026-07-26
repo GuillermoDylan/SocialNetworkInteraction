@@ -40,13 +40,15 @@
     "typescript": "~5.9.2"
   },
   "scripts": {
-    "start": "expo start",
+    "generate:assets": "node scripts/generateImageMap.js",
+    "prebuild": "npm run generate:assets",
+    "start": "npm run generate:assets && expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test-local": "npx expo export --platform web & npx serve -s dist",
     "build:web": "expo export --platform web",
-    "deploy:gh-pages": "npm run build:web && gh-pages -d dist"
+    "deploy:gh-pages": "npm run generate:assets && npm run build:web && gh-pages -d dist"
   },
   "private": true
 }

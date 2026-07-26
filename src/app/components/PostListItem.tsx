@@ -67,7 +67,7 @@ export default function PostListItem({ post, setCommentedPost, setLikedPost }: P
     };
 
     return (
-        <View className='bg-white'>
+        <View className='bg-white' nativeID={post.id}>
             {
                 post.type == "video" &&
                 <View className="relative">
@@ -131,10 +131,9 @@ export default function PostListItem({ post, setCommentedPost, setLikedPost }: P
                     active={liked}
                     onPress={toggleLike}
                     outlineIcon={<Ionicons name="heart-outline" size={30} color="black" />}
-                    filledIcon={<Ionicons name="heart" size={30} color="red" />}
-                />
+                    filledIcon={<Ionicons name="heart" size={30} color="red" />} id={post.id} />
 
-                <Pressable onPress={() => setShowComments(true)}>
+                <Pressable onPress={() => setShowComments(true)} nativeID={"comment-" + post.id}>
                     <Ionicons name="chatbubble-outline" size={30} />
                 </Pressable>
 
