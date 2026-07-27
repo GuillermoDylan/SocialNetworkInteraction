@@ -81,33 +81,6 @@
     }
   },
   {
-    "id": "13",
-    "type": "video",
-    "video_url": "VID_4",
-    "caption": "She makes some really interesting points 🎤 #talk #creator #fyp",
-    "likes": 1126,
-    "comments": [
-      {
-        "id": "24",
-        "username": "Ella",
-        "text": "She explained it really well.",
-        "likes": 39
-      },
-      {
-        "id": "25",
-        "username": "John",
-        "text": "I completely agree with her.",
-        "likes": 28
-      }
-    ],
-    "user": {
-      "id": "u12",
-      "avatar_url": "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%2Fid%2FOIP.f-tBIGd7XTnkGKqtmyCdCgHaEe%3Fpid%3DApi&f=1&ipt=c1da84698274394723ff33e8e7877d1eb0c24d4a5a5f2da45c7f6fc1ca18b33c",
-      "image_url": "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%2Fid%2FOIP.f-tBIGd7XTnkGKqtmyCdCgHaEe%3Fpid%3DApi&f=1&ipt=c1da84698274394723ff33e8e7877d1eb0c24d4a5a5f2da45c7f6fc1ca18b33c",
-      "username": "TalksDaily"
-    }
-  },
-  {
     "id": "14",
     "type": "video",
     "video_url": "VID_5",
