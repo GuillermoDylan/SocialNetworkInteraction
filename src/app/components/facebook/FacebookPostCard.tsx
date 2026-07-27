@@ -41,12 +41,14 @@ export default function FacebookPostCard({
     const hasImage = !!post.image_url;
     const imageSource = resolveLocalImageSource(post.image_url ?? undefined);
 
+    const profileSource = { uri: `https://thispersondoesnotexist.com/random-person.jpeg?cb=${post.user.id}` };
+
     return (
         <View className="bg-white mb-2 border-b border-gray-200 pb-2">
             {/* Header: avatar + username */}
             <View className="flex-row items-center px-3 py-3">
                 <Image
-                    source={{uri: post.user?.image_url}}
+                    source={{ uri: post.user?.image_url + '?u=' + (post.user?.id ?? post.id), cache: "reload" }}
                     style={{ width: 40, height: 40, borderRadius: 20 }}
                 />
                 <View className="ml-3 flex-1">
@@ -97,11 +99,8 @@ export default function FacebookPostCard({
                     <AnimatedIconToggle
                         active={heartActive}
                         onPress={() => triggerLike(false)}
-                        outlineIcon={
-                            <Ionicons name="thumbs-up-outline" size={20} color="#65676b" />
-                        }
-                        filledIcon={<Ionicons name="thumbs-up" size={20} color="#1877f2" />}
-                    />
+                        outlineIcon={<Ionicons name="thumbs-up-outline" size={20} color="#65676b" />}
+                        filledIcon={<Ionicons name="thumbs-up" size={20} color="#1877f2" />} id={post.id} />
                     <Text
                         className="font-semibold text-[15px]"
                         style={{ color: liked ? "#1877f2" : "#65676b" }}

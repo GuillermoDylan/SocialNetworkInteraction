@@ -2,113 +2,113 @@
   {
     "id": "pic1",
     "type": "pic",
-    "image": "IMG_1",
-    "image_url": "IMG_1",
-    "caption": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic repellendus unde blanditiis. Eos fugiat dolorem ea fugit aut sapiente corrupti autem dolores deleniti architecto, omnis, amet unde dignissimos quam minima?",
+    "image": "IMG_25",
+    "image_url": "IMG_25",
+    "caption": "Good vibes only \u2728 #daily #life",
     "user": {
-      "id": "u1",
-      "avatar_url": "IMG_1",
-      "image_url": "IMG_1",
-      "username": "GDylan"
+      "id": "u6",
+      "avatar_url": "IMG_6",
+      "image_url": "IMG_6",
+      "username": "Sophie"
     }
   },
   {
     "id": "pic2",
     "type": "pic",
-    "image": "IMG_2",
-    "image_url": "IMG_2",
-    "caption": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic repellendus unde blanditiis. Eos fugiat dolorem ea fugit aut sapiente corrupti autem dolores deleniti architecto, omnis, amet unde dignissimos quam minima?",
+    "image": "IMG_7",
+    "image_url": "IMG_7",
+    "caption": "Weekend mood \ud83c\udf1e #lifestyle #explore",
     "user": {
-      "id": "u1",
-      "avatar_url": "IMG_1",
-      "image_url": "IMG_1",
-      "username": "GDylan"
+      "id": "u3",
+      "avatar_url": "IMG_3",
+      "image_url": "IMG_3",
+      "username": "Luna"
     }
   },
   {
     "id": "pic3",
     "type": "pic",
-    "image": "IMG_3",
-    "image_url": "IMG_3",
-    "caption": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic repellendus unde blanditiis. Eos fugiat dolorem ea fugit aut sapiente corrupti autem dolores deleniti architecto, omnis, amet unde dignissimos quam minima?",
+    "image": "IMG_45",
+    "image_url": "IMG_45",
+    "caption": "Captured the moment #instagood #photo",
     "user": {
-      "id": "u2",
-      "avatar_url": "IMG_2",
-      "image_url": "IMG_2",
-      "username": "Garfield"
+      "id": "u1",
+      "avatar_url": "IMG_1",
+      "image_url": "IMG_1",
+      "username": "GDylan"
     }
   },
   {
     "id": "pic4",
     "type": "pic",
-    "image": "IMG_4",
-    "image_url": "IMG_4",
-    "caption": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic repellendus unde blanditiis. Eos fugiat dolorem ea fugit aut sapiente corrupti autem dolores deleniti architecto, omnis, amet unde dignissimos quam minima?",
+    "image": "IMG_36",
+    "image_url": "IMG_36",
+    "caption": "Captured the moment #instagood #photo",
     "user": {
-      "id": "u2",
-      "avatar_url": "IMG_2",
-      "image_url": "IMG_2",
-      "username": "Garfield"
+      "id": "u6",
+      "avatar_url": "IMG_6",
+      "image_url": "IMG_6",
+      "username": "Sophie"
     }
   },
   {
     "id": "pic5",
     "type": "pic",
-    "image": "IMG_5",
-    "image_url": "IMG_5",
-    "caption": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic repellendus unde blanditiis. Eos fugiat dolorem ea fugit aut sapiente corrupti autem dolores deleniti architecto, omnis, amet unde dignissimos quam minima?",
+    "image": "IMG_11",
+    "image_url": "IMG_11",
+    "caption": "Lost in a good book \ud83d\udcda #reading #books",
     "user": {
-      "id": "u1",
-      "avatar_url": "IMG_1",
-      "image_url": "IMG_1",
-      "username": "GDylan"
+      "id": "u6",
+      "avatar_url": "IMG_6",
+      "image_url": "IMG_6",
+      "username": "Sophie"
     }
   },
   {
     "id": "pic6",
     "type": "pic",
-    "image": "IMG_6",
-    "image_url": "IMG_6",
-    "caption": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic repellendus unde blanditiis. Eos fugiat dolorem ea fugit aut sapiente corrupti autem dolores deleniti architecto, omnis, amet unde dignissimos quam minima?",
+    "image": "IMG_44",
+    "image_url": "IMG_44",
+    "caption": "Captured the moment #instagood #photo",
     "user": {
-      "id": "u2",
-      "avatar_url": "IMG_2",
-      "image_url": "IMG_2",
-      "username": "Garfield"
+      "id": "u4",
+      "avatar_url": "IMG_4",
+      "image_url": "IMG_4",
+      "username": "Chris"
     }
   },
   {
     "id": "pic7",
     "type": "pic",
-    "image": "IMG_7",
-    "image_url": "IMG_7",
-    "caption": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic repellendus unde blanditiis. Eos fugiat dolorem ea fugit aut sapiente corrupti autem dolores deleniti architecto, omnis, amet unde dignissimos quam minima?",
+    "image": "IMG_19",
+    "image_url": "IMG_19",
+    "caption": "Weekend mood \ud83c\udf1e #lifestyle #explore",
     "user": {
-      "id": "u1",
-      "avatar_url": "IMG_1",
-      "image_url": "IMG_1",
-      "username": "GDylan"
+      "id": "u5",
+      "avatar_url": "IMG_5",
+      "image_url": "IMG_5",
+      "username": "Alex"
     }
   },
   {
     "id": "pic8",
     "type": "pic",
-    "image": "IMG_8",
-    "image_url": "IMG_8",
-    "caption": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic repellendus unde blanditiis. Eos fugiat dolorem ea fugit aut sapiente corrupti autem dolores deleniti architecto, omnis, amet unde dignissimos quam minima?",
+    "image": "IMG_21",
+    "image_url": "IMG_21",
+    "caption": "Good vibes only \u2728 #daily #life",
     "user": {
-      "id": "u2",
-      "avatar_url": "IMG_2",
-      "image_url": "IMG_2",
-      "username": "Garfield"
+      "id": "u3",
+      "avatar_url": "IMG_3",
+      "image_url": "IMG_3",
+      "username": "Luna"
     }
   },
   {
     "id": "pic9",
     "type": "pic",
-    "image": "IMG_9",
-    "image_url": "IMG_9",
-    "caption": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic repellendus unde blanditiis. Eos fugiat dolorem ea fugit aut sapiente corrupti autem dolores deleniti architecto, omnis, amet unde dignissimos quam minima?",
+    "image": "IMG_43",
+    "image_url": "IMG_43",
+    "caption": "Good vibes only \u2728 #daily #life",
     "user": {
       "id": "u1",
       "avatar_url": "IMG_1",
@@ -119,48 +119,48 @@
   {
     "id": "pic10",
     "type": "pic",
-    "image": "IMG_10",
-    "image_url": "IMG_10",
-    "caption": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic repellendus unde blanditiis. Eos fugiat dolorem ea fugit aut sapiente corrupti autem dolores deleniti architecto, omnis, amet unde dignissimos quam minima?",
+    "image": "IMG_24",
+    "image_url": "IMG_24",
+    "caption": "Just another day \ud83d\udcf8 #fyp #photooftheday #explore",
     "user": {
-      "id": "u2",
-      "avatar_url": "IMG_2",
-      "image_url": "IMG_2",
-      "username": "Garfield"
+      "id": "u6",
+      "avatar_url": "IMG_6",
+      "image_url": "IMG_6",
+      "username": "Sophie"
     }
   },
   {
     "id": "pic11",
     "type": "pic",
-    "image": "IMG_11",
-    "image_url": "IMG_11",
-    "caption": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic repellendus unde blanditiis. Eos fugiat dolorem ea fugit aut sapiente corrupti autem dolores deleniti architecto, omnis, amet unde dignissimos quam minima?",
+    "image": "IMG_12",
+    "image_url": "IMG_12",
+    "caption": "Keeping the lights on \u26a1 #electrician #work",
     "user": {
-      "id": "u1",
-      "avatar_url": "IMG_1",
-      "image_url": "IMG_1",
-      "username": "GDylan"
+      "id": "u6",
+      "avatar_url": "IMG_6",
+      "image_url": "IMG_6",
+      "username": "Sophie"
     }
   },
   {
     "id": "pic12",
     "type": "pic",
-    "image": "IMG_12",
-    "image_url": "IMG_12",
-    "caption": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic repellendus unde blanditiis. Eos fugiat dolorem ea fugit aut sapiente corrupti autem dolores deleniti architecto, omnis, amet unde dignissimos quam minima?",
+    "image": "IMG_41",
+    "image_url": "IMG_41",
+    "caption": "Just another day \ud83d\udcf8 #fyp #photooftheday #explore",
     "user": {
-      "id": "u2",
-      "avatar_url": "IMG_2",
-      "image_url": "IMG_2",
-      "username": "Garfield"
+      "id": "u3",
+      "avatar_url": "IMG_3",
+      "image_url": "IMG_3",
+      "username": "Luna"
     }
   },
   {
     "id": "pic13",
     "type": "pic",
-    "image": "IMG_13",
-    "image_url": "IMG_13",
-    "caption": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic repellendus unde blanditiis. Eos fugiat dolorem ea fugit aut sapiente corrupti autem dolores deleniti architecto, omnis, amet unde dignissimos quam minima?",
+    "image": "IMG_15",
+    "image_url": "IMG_15",
+    "caption": "Busy city, endless stories \ud83c\udf06 #citylife #street",
     "user": {
       "id": "u1",
       "avatar_url": "IMG_1",
@@ -171,22 +171,9 @@
   {
     "id": "pic14",
     "type": "pic",
-    "image": "IMG_14",
-    "image_url": "IMG_14",
-    "caption": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic repellendus unde blanditiis. Eos fugiat dolorem ea fugit aut sapiente corrupti autem dolores deleniti architecto, omnis, amet unde dignissimos quam minima?",
-    "user": {
-      "id": "u2",
-      "avatar_url": "IMG_2",
-      "image_url": "IMG_2",
-      "username": "Garfield"
-    }
-  },
-  {
-    "id": "pic15",
-    "type": "pic",
-    "image": "IMG_15",
-    "image_url": "IMG_15",
-    "caption": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic repellendus unde blanditiis. Eos fugiat dolorem ea fugit aut sapiente corrupti autem dolores deleniti architecto, omnis, amet unde dignissimos quam minima?",
+    "image": "IMG_40",
+    "image_url": "IMG_40",
+    "caption": "Good vibes only \u2728 #daily #life",
     "user": {
       "id": "u1",
       "avatar_url": "IMG_1",
@@ -195,16 +182,445 @@
     }
   },
   {
+    "id": "pic15",
+    "type": "pic",
+    "image": "IMG_37",
+    "image_url": "IMG_37",
+    "caption": "Good vibes only \u2728 #daily #life",
+    "user": {
+      "id": "u6",
+      "avatar_url": "IMG_6",
+      "image_url": "IMG_6",
+      "username": "Sophie"
+    }
+  },
+  {
     "id": "pic16",
     "type": "pic",
-    "image": "IMG_16",
-    "image_url": "IMG_16",
-    "caption": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Hic repellendus unde blanditiis. Eos fugiat dolorem ea fugit aut sapiente corrupti autem dolores deleniti architecto, omnis, amet unde dignissimos quam minima?",
+    "image": "IMG_2",
+    "image_url": "IMG_2",
+    "caption": "Parkour level: impressive \ud83c\udfc3 #parkour #freerun",
+    "user": {
+      "id": "u6",
+      "avatar_url": "IMG_6",
+      "image_url": "IMG_6",
+      "username": "Sophie"
+    }
+  },
+  {
+    "id": "pic17",
+    "type": "pic",
+    "image": "IMG_9",
+    "image_url": "IMG_9",
+    "caption": "Future artist at work \ud83c\udfa8 #painting #creative",
+    "user": {
+      "id": "u4",
+      "avatar_url": "IMG_4",
+      "image_url": "IMG_4",
+      "username": "Chris"
+    }
+  },
+  {
+    "id": "pic18",
+    "type": "pic",
+    "image": "IMG_34",
+    "image_url": "IMG_34",
+    "caption": "Good vibes only \u2728 #daily #life",
+    "user": {
+      "id": "u5",
+      "avatar_url": "IMG_5",
+      "image_url": "IMG_5",
+      "username": "Alex"
+    }
+  },
+  {
+    "id": "pic19",
+    "type": "pic",
+    "image": "IMG_4",
+    "image_url": "IMG_4",
+    "caption": "Taking street jumps to the next level! #urban #action",
+    "user": {
+      "id": "u5",
+      "avatar_url": "IMG_5",
+      "image_url": "IMG_5",
+      "username": "Alex"
+    }
+  },
+  {
+    "id": "pic20",
+    "type": "pic",
+    "image": "IMG_3",
+    "image_url": "IMG_3",
+    "caption": "Practice makes perfect \ud83e\ude70 #ballet #dance",
+    "user": {
+      "id": "u3",
+      "avatar_url": "IMG_3",
+      "image_url": "IMG_3",
+      "username": "Luna"
+    }
+  },
+  {
+    "id": "pic21",
+    "type": "pic",
+    "image": "IMG_39",
+    "image_url": "IMG_39",
+    "caption": "Weekend mood \ud83c\udf1e #lifestyle #explore",
+    "user": {
+      "id": "u4",
+      "avatar_url": "IMG_4",
+      "image_url": "IMG_4",
+      "username": "Chris"
+    }
+  },
+  {
+    "id": "pic22",
+    "type": "pic",
+    "image": "IMG_35",
+    "image_url": "IMG_35",
+    "caption": "Weekend mood \ud83c\udf1e #lifestyle #explore",
+    "user": {
+      "id": "u4",
+      "avatar_url": "IMG_4",
+      "image_url": "IMG_4",
+      "username": "Chris"
+    }
+  },
+  {
+    "id": "pic23",
+    "type": "pic",
+    "image": "IMG_26",
+    "image_url": "IMG_26",
+    "caption": "Just another day \ud83d\udcf8 #fyp #photooftheday #explore",
+    "user": {
+      "id": "u1",
+      "avatar_url": "IMG_1",
+      "image_url": "IMG_1",
+      "username": "GDylan"
+    }
+  },
+  {
+    "id": "pic24",
+    "type": "pic",
+    "image": "IMG_22",
+    "image_url": "IMG_22",
+    "caption": "Just another day \ud83d\udcf8 #fyp #photooftheday #explore",
+    "user": {
+      "id": "u6",
+      "avatar_url": "IMG_6",
+      "image_url": "IMG_6",
+      "username": "Sophie"
+    }
+  },
+  {
+    "id": "pic25",
+    "type": "pic",
+    "image": "IMG_46",
+    "image_url": "IMG_46",
+    "caption": "Captured the moment #instagood #photo",
+    "user": {
+      "id": "u6",
+      "avatar_url": "IMG_6",
+      "image_url": "IMG_6",
+      "username": "Sophie"
+    }
+  },
+  {
+    "id": "pic26",
+    "type": "pic",
+    "image": "IMG_28",
+    "image_url": "IMG_28",
+    "caption": "Just another day \ud83d\udcf8 #fyp #photooftheday #explore",
+    "user": {
+      "id": "u6",
+      "avatar_url": "IMG_6",
+      "image_url": "IMG_6",
+      "username": "Sophie"
+    }
+  },
+  {
+    "id": "pic27",
+    "type": "pic",
+    "image": "IMG_5",
+    "image_url": "IMG_5",
+    "caption": "Dogs being dogs \ud83d\udc36 #pets #dogs",
+    "user": {
+      "id": "u3",
+      "avatar_url": "IMG_3",
+      "image_url": "IMG_3",
+      "username": "Luna"
+    }
+  },
+  {
+    "id": "pic28",
+    "type": "pic",
+    "image": "IMG_23",
+    "image_url": "IMG_23",
+    "caption": "Weekend mood \ud83c\udf1e #lifestyle #explore",
+    "user": {
+      "id": "u4",
+      "avatar_url": "IMG_4",
+      "image_url": "IMG_4",
+      "username": "Chris"
+    }
+  },
+  {
+    "id": "pic29",
+    "type": "pic",
+    "image": "IMG_20",
+    "image_url": "IMG_20",
+    "caption": "Just another day \ud83d\udcf8 #fyp #photooftheday #explore",
     "user": {
       "id": "u2",
       "avatar_url": "IMG_2",
       "image_url": "IMG_2",
       "username": "Garfield"
+    }
+  },
+  {
+    "id": "pic30",
+    "type": "pic",
+    "image": "IMG_10",
+    "image_url": "IMG_10",
+    "caption": "Best nap buddy ever \ud83d\udc15 #relax #park",
+    "user": {
+      "id": "u1",
+      "avatar_url": "IMG_1",
+      "image_url": "IMG_1",
+      "username": "GDylan"
+    }
+  },
+  {
+    "id": "pic31",
+    "type": "pic",
+    "image": "IMG_27",
+    "image_url": "IMG_27",
+    "caption": "Good vibes only \u2728 #daily #life",
+    "user": {
+      "id": "u2",
+      "avatar_url": "IMG_2",
+      "image_url": "IMG_2",
+      "username": "Garfield"
+    }
+  },
+  {
+    "id": "pic32",
+    "type": "pic",
+    "image": "IMG_1",
+    "image_url": "IMG_1",
+    "caption": "A peaceful moment in the garden \ud83c\udf3f #garden #outdoors",
+    "user": {
+      "id": "u1",
+      "avatar_url": "IMG_1",
+      "image_url": "IMG_1",
+      "username": "GDylan"
+    }
+  },
+  {
+    "id": "pic33",
+    "type": "pic",
+    "image": "IMG_31",
+    "image_url": "IMG_31",
+    "caption": "Captured the moment #instagood #photo",
+    "user": {
+      "id": "u2",
+      "avatar_url": "IMG_2",
+      "image_url": "IMG_2",
+      "username": "Garfield"
+    }
+  },
+  {
+    "id": "pic34",
+    "type": "pic",
+    "image": "IMG_42",
+    "image_url": "IMG_42",
+    "caption": "Good vibes only \u2728 #daily #life",
+    "user": {
+      "id": "u4",
+      "avatar_url": "IMG_4",
+      "image_url": "IMG_4",
+      "username": "Chris"
+    }
+  },
+  {
+    "id": "pic35",
+    "type": "pic",
+    "image": "IMG_47",
+    "image_url": "IMG_47",
+    "caption": "Good vibes only \u2728 #daily #life",
+    "user": {
+      "id": "u4",
+      "avatar_url": "IMG_4",
+      "image_url": "IMG_4",
+      "username": "Chris"
+    }
+  },
+  {
+    "id": "pic36",
+    "type": "pic",
+    "image": "IMG_8",
+    "image_url": "IMG_8",
+    "caption": "Freshly baked goodness \ud83c\udf5e #baking #food",
+    "user": {
+      "id": "u1",
+      "avatar_url": "IMG_1",
+      "image_url": "IMG_1",
+      "username": "GDylan"
+    }
+  },
+  {
+    "id": "pic37",
+    "type": "pic",
+    "image": "IMG_14",
+    "image_url": "IMG_14",
+    "caption": "Just another day \ud83d\udcf8 #fyp #photooftheday #explore",
+    "user": {
+      "id": "u5",
+      "avatar_url": "IMG_5",
+      "image_url": "IMG_5",
+      "username": "Alex"
+    }
+  },
+  {
+    "id": "pic38",
+    "type": "pic",
+    "image": "IMG_17",
+    "image_url": "IMG_17",
+    "caption": "Weekend mood \ud83c\udf1e #lifestyle #explore",
+    "user": {
+      "id": "u4",
+      "avatar_url": "IMG_4",
+      "image_url": "IMG_4",
+      "username": "Chris"
+    }
+  },
+  {
+    "id": "pic39",
+    "type": "pic",
+    "image": "IMG_32",
+    "image_url": "IMG_32",
+    "caption": "Weekend mood \ud83c\udf1e #lifestyle #explore",
+    "user": {
+      "id": "u3",
+      "avatar_url": "IMG_3",
+      "image_url": "IMG_3",
+      "username": "Luna"
+    }
+  },
+  {
+    "id": "pic40",
+    "type": "pic",
+    "image": "IMG_18",
+    "image_url": "IMG_18",
+    "caption": "Just another day \ud83d\udcf8 #fyp #photooftheday #explore",
+    "user": {
+      "id": "u3",
+      "avatar_url": "IMG_3",
+      "image_url": "IMG_3",
+      "username": "Luna"
+    }
+  },
+  {
+    "id": "pic41",
+    "type": "pic",
+    "image": "IMG_38",
+    "image_url": "IMG_38",
+    "caption": "Weekend mood \ud83c\udf1e #lifestyle #explore",
+    "user": {
+      "id": "u2",
+      "avatar_url": "IMG_2",
+      "image_url": "IMG_2",
+      "username": "Garfield"
+    }
+  },
+  {
+    "id": "pic42",
+    "type": "pic",
+    "image": "IMG_6",
+    "image_url": "IMG_6",
+    "caption": "Hard work on the farm \ud83d\ude9c #tractor #farm",
+    "user": {
+      "id": "u6",
+      "avatar_url": "IMG_6",
+      "image_url": "IMG_6",
+      "username": "Sophie"
+    }
+  },
+  {
+    "id": "pic43",
+    "type": "pic",
+    "image": "IMG_13",
+    "image_url": "IMG_13",
+    "caption": "Music brings everyone together \ud83c\udfb5 #music #learning",
+    "user": {
+      "id": "u1",
+      "avatar_url": "IMG_1",
+      "image_url": "IMG_1",
+      "username": "GDylan"
+    }
+  },
+  {
+    "id": "pic44",
+    "type": "pic",
+    "image": "IMG_30",
+    "image_url": "IMG_30",
+    "caption": "Weekend mood \ud83c\udf1e #lifestyle #explore",
+    "user": {
+      "id": "u5",
+      "avatar_url": "IMG_5",
+      "image_url": "IMG_5",
+      "username": "Alex"
+    }
+  },
+  {
+    "id": "pic45",
+    "type": "pic",
+    "image": "IMG_33",
+    "image_url": "IMG_33",
+    "caption": "Captured the moment #instagood #photo",
+    "user": {
+      "id": "u1",
+      "avatar_url": "IMG_1",
+      "image_url": "IMG_1",
+      "username": "GDylan"
+    }
+  },
+  {
+    "id": "pic46",
+    "type": "pic",
+    "image": "IMG_29",
+    "image_url": "IMG_29",
+    "caption": "Weekend mood \ud83c\udf1e #lifestyle #explore",
+    "user": {
+      "id": "u3",
+      "avatar_url": "IMG_3",
+      "image_url": "IMG_3",
+      "username": "Luna"
+    }
+  },
+  {
+    "id": "pic47",
+    "type": "pic",
+    "image": "IMG_16",
+    "image_url": "IMG_16",
+    "caption": "Just another day \ud83d\udcf8 #fyp #photooftheday #explore",
+    "user": {
+      "id": "u3",
+      "avatar_url": "IMG_3",
+      "image_url": "IMG_3",
+      "username": "Luna"
+    }
+  },
+  {
+    "id": "pic48",
+    "type": "pic",
+    "image": "IMG_48",
+    "image_url": "IMG_48",
+    "caption": "Just another day \ud83d\udcf8 #fyp #photooftheday #explore",
+    "user": {
+      "id": "u6",
+      "avatar_url": "IMG_6",
+      "image_url": "IMG_6",
+      "username": "Sophie"
     }
   }
 ]

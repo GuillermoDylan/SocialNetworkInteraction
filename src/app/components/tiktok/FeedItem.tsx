@@ -124,8 +124,7 @@ export default function FeedItem({
                         active={heartActive}
                         onPress={() => triggerLike(false)}
                         outlineIcon={<Ionicons name="heart-outline" size={34} color="white" />}
-                        filledIcon={<Ionicons name="heart" size={34} color="#ff2d55" />}
-                    />
+                        filledIcon={<Ionicons name="heart" size={34} color="#ff2d55" />} id={video.id} />
                     <Text className="text-white text-xs mt-1">{likeCount}</Text>
                 </View>
 

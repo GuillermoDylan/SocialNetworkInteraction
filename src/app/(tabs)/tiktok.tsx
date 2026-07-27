@@ -163,6 +163,7 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
 
             {activePost && (
                 <CommentsSection
+                    key={activePost.id}
                     showComments={showComments}
                     setShowComments={setShowComments}
                     selectedPost={activePost}

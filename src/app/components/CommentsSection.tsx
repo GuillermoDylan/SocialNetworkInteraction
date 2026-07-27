@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, View, Text, TextInput, KeyboardAvoidingView, Platform, Modal, Dimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import Comment from "~/src/app/model/Comment";
 import Post from "../model/post";
 import Video from "../model/Video";
@@ -21,6 +21,10 @@ export default function CommentsSection({ showComments, setShowComments, selecte
 
     const [comments, setComments] = useState<Comment[]>(selectedPost.comments ?? []);
     const [commentText, setCommentText] = useState("");
+
+    useEffect(() => {
+        setComments(selectedPost.comments ?? []);
+    }, [selectedPost.id]);
 
     const submitComment = () => {
         const trimmed = commentText.trim();
