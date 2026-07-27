@@ -40,7 +40,6 @@ export default function FeedItem({
     const [heartPosition, setHeartPosition] = useState({ x: 0, y: 0 });
     const [lastTap, setLastTap] = useState<number | null>(null);
 
-
     const triggerLike = (fromDoubleTap = false) => {
         if (!liked) {
             heartActive.value = withSpring(1);
@@ -82,6 +81,8 @@ export default function FeedItem({
         onToggleLike();
     };
 
+    let profileSource = video.user?.image_url.startsWith("http") ? { uri: video.user?.image_url } : resolveLocalImageSource(video.user?.image_url);
+
     return (
         <View style={{ width: screenWidth, height: screenHeight }} className="bg-black">
             <Pressable onPress={handleImagePress}>
@@ -109,7 +110,7 @@ export default function FeedItem({
             <View className="absolute bottom-24 left-3 right-20">
                 <View className="flex-row items-center gap-2 mb-2">
                     <Image
-                        source={resolveLocalImageSource(video.user?.image_url)}
+                        source={profileSource}
                         style={{ width: 36, height: 36, borderRadius: 18 }}
                     />
                     <Text className="text-white font-bold">@{video.user?.username}</Text>
@@ -118,7 +119,7 @@ export default function FeedItem({
             </View>
 
             {/* Right-side action rail */}
-            <View className="absolute bottom-24 right-3 items-center gap-5">
+            <View className="absolute bottom-32 right-3 items-center gap-5">
                 <View className="items-center">
                     <AnimatedIconToggle
                         active={heartActive}
@@ -131,11 +132,6 @@ export default function FeedItem({
                 <Pressable className="items-center" onPress={onOpenComments}>
                     <Ionicons name="chatbubble-ellipses-outline" size={32} color="white" />
                     <Text className="text-white text-xs mt-1">{commentCount}</Text>
-                </Pressable>
-
-                <Pressable className="items-center">
-                    <Ionicons name="arrow-redo-outline" size={32} color="white" />
-                    <Text className="text-white text-xs mt-1">Share</Text>
                 </Pressable>
             </View>
         </View>

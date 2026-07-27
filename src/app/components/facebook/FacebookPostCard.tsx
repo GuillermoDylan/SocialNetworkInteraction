@@ -55,7 +55,6 @@ export default function FacebookPostCard({
                     <Text className="font-bold text-[15px]">{post.user?.username}</Text>
                     <Text className="text-gray-500 text-xs">Just now · 🌐</Text>
                 </View>
-                <Ionicons name="ellipsis-horizontal" size={20} color="#65676b" />
             </View>
 
             {/* Caption */}
