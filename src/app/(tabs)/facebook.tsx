@@ -11,7 +11,7 @@ import FacebookPost from "../model/FacebookPost";
 import { ActivityIndicator, FlatList, View } from "react-native";
 import FacebookPostCard from "../components/facebook/FacebookPostCard";
 import CommentsSection from "../components/CommentsSection";
-import { finishExperiment, finishSubsceneTracking, finishTracking, initTracking } from "~/assets/tracker/scriptTest";
+import { finishExperiment, finishTracking, initTracking } from "~/assets/tracker/tracker-agent";
 
 const fakeProfile = {
     username: "GDylan",
@@ -64,7 +64,7 @@ export default function FacebookFeed({ onTasksCompleted }: FacebookFeedProps) {
         finishTracking(null);
         finishExperiment();
         onTasksCompleted();
-    }, [likedPost, commentedPost, onTasksCompleted]);
+    }, [likedPost, commentedPost, scrolled, onTasksCompleted]);
 
 
     const toggleLike = (id: string) => {

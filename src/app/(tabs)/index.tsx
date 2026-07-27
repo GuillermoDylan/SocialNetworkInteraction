@@ -2,7 +2,7 @@ import { ActivityIndicator, FlatList, View } from "react-native";
 import posts from "~/assets/data/posts.json"
 import PostListItem from "../components/PostListItem";
 import { useEffect, useState } from "react";
-import { initTracking, startExperiment, finishSubsceneTracking, registerid } from "~/assets/tracker/scriptTest.js";
+import { initTracking, startExperiment, finishSubsceneTracking } from "~/assets/tracker/tracker-agent";
 import { registerID } from "~/assets/tracker/tracker-agent";
 
 import { v4 as uuidva4 } from "uuid";
@@ -28,7 +28,7 @@ export default function FeedScreen({ onTasksCompleted }: FeedScreenProps) {
             try {
                 await startExperiment();
                 await initTracking(0);
-                await registerID(uuidva4());
+                // await registerID(uuidva4());
             } catch (error) {
                 // handle or ignore
                 console.error("Tracking init failed on index tab:", error);

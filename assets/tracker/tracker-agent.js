@@ -66,7 +66,7 @@ let trackingAbortController = null;
 const elements = [];
 const TOP_LIMIT = 50;
 const idExperiment = 6;
-const urlBase = "https:\/\/156.35.163.141";
+const urlBase = "https:\/\/156-35-163-141.nip.io";
 const url = urlBase + '/TrackerServer/restws/track';
 const urlBackgroundTracker = urlBase + '/TrackerServer/restws/backgroundTracker';
 const urlRegisterComponent = urlBase + '/TrackerServer/restws/registerComponent';
@@ -963,3 +963,6 @@ export function registerSexo(value) { postStringDD(48, value); }
 export function registerEdad(value) { postNumberDD(49, value); }
 export function registerNacionalidad(value) { postStringDD(50, value); }
 
+export function isEmittingData(){
+    return emittingData;
+}

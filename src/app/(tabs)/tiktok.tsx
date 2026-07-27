@@ -5,7 +5,7 @@ import CommentsSection from "../components/CommentsSection";
 import Video from "../model/Video";
 
 import videos from "~/assets/data/videos.json";
-import { finishSubsceneTracking, initTracking } from "~/assets/tracker/scriptTest";
+import { finishSubsceneTracking, initTracking } from "~/assets/tracker/tracker-agent";
 
 const fakeProfile = {
     id: "1",

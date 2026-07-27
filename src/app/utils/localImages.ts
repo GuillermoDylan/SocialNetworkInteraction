@@ -52,7 +52,7 @@ import img48 from "~/assets/images/IMG_9.jpeg";
 
 import cat from "~/assets/videos/cat.mp4";
 import VID_1 from "~/assets/videos/VID_1.mp4";
-import VID_2 from "~/assets/videos/VID_2.mp4";
+import VID_2 from "~/assets/videos/VID_2.mov";
 import VID_3 from "~/assets/videos/VID_3.mp4";
 import VID_4 from "~/assets/videos/VID_4.mp4";
 

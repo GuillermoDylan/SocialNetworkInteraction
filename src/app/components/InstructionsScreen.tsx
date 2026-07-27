@@ -2,7 +2,8 @@ import { View, Text, Pressable, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useTranslation } from "react-i18next";
 
-import { isEmittingData } from "~/assets/tracker/scriptTest";
+import { isEmittingData } from "~/assets/tracker/tracker-agent";
+import { useEffect, useState } from "react";
 
 type InstructionScreenProps = {
   title: string;
@@ -21,9 +22,16 @@ export default function InstructionScreen({
 }: InstructionScreenProps) {
   const { t, i18n } = useTranslation();
 
+  let [state, setState] = useState(false);
+
   const toggleLanguage = () => {
     i18n.changeLanguage(i18n.language === "en" ? "ch" : "en");
   };
+
+  useEffect(() => {
+    state = !isEmittingData();
+    console.log(state);
+  }, [state])
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -33,7 +41,7 @@ export default function InstructionScreen({
         <Pressable onPress={toggleLanguage} className="bg-gray-200 rounded-full py-4 items-center mb-3 w-36 mt-4 self-center">
           <Text className="text-black font-bold text-base">{i18n.language === "en" ? "Switch to CH" : "Switch to EN"}</Text>
         </Pressable>
-        {isFinish && isEmittingData() &&
+        {isFinish && state &&
           <><Text className="text-center font-bold text-black text-base pt-2 pb-2">Do not close the page. Please wait.</Text><ActivityIndicator size="large" /></>}
       </View>
 
