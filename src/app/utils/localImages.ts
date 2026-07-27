@@ -50,11 +50,15 @@ import img46 from "~/assets/images/IMG_7.jpeg";
 import img47 from "~/assets/images/IMG_8.jpeg";
 import img48 from "~/assets/images/IMG_9.jpeg";
 
+import broken1_fixed from "~/assets/videos/broken1_fixed.mp4";
 import cat from "~/assets/videos/cat.mp4";
 import VID_1 from "~/assets/videos/VID_1.mp4";
 import VID_2 from "~/assets/videos/VID_2.mov";
 import VID_3 from "~/assets/videos/VID_3.mp4";
 import VID_4 from "~/assets/videos/VID_4.mp4";
+import VID_5 from "~/assets/videos/VID_5.mp4";
+import VID_6 from "~/assets/videos/VID_6.mp4";
+import VID_7 from "~/assets/videos/VID_7.mp4";
 
 const localImageMap: Record<string, ImageSourcePropType> = {
   IMG_1: img1,
@@ -108,11 +112,15 @@ const localImageMap: Record<string, ImageSourcePropType> = {
 };
 
 const localVideoMap: Record<string, number> = {
+  broken1_fixed: broken1_fixed,
   cat: cat,
   VID_1: VID_1,
   VID_2: VID_2,
   VID_3: VID_3,
   VID_4: VID_4,
+  VID_5: VID_5,
+  VID_6: VID_6,
+  VID_7: VID_7,
 }
 
 export function resolveLocalImageSource(value?: string): ImageSourcePropType {

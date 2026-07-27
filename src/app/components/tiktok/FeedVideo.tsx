@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { View, Pressable } from "react-native";
-import { VideoView, useVideoPlayer } from "expo-video";
+import { VideoPlayer, VideoView, useVideoPlayer } from "expo-video";
 import { Ionicons } from "@expo/vector-icons";
 import DoubleTapHeart from "~/src/app/components/buttons/DoubleTapHeart";
 import { resolveLocalVideoSource } from "~/src/app/utils/localImages";
@@ -30,7 +30,11 @@ export default function FeedVideo({
     height,
 }: FeedVideoProps) {
     const lastTapRef = useRef<number>(0);
-    const player = useVideoPlayer(resolveLocalVideoSource(videoUrl), (videoPlayer) => {
+    const source = videoUrl.startsWith("http")
+        ? videoUrl
+        : resolveLocalVideoSource(videoUrl);
+
+    const player = useVideoPlayer(source, (videoPlayer) => {
         videoPlayer.loop = true;
     });
 
