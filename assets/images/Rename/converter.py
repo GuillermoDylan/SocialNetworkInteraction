@@ -30,7 +30,7 @@ for i, filename in enumerate(images):
     temp_names.append(temp_name)
 
 # Second pass: rename to final names
-for i, temp_name in enumerate(temp_names, start=1):
+for i, temp_name in enumerate(temp_names, start=83):
     ext = os.path.splitext(temp_name)[1]
     new_name = f"IMG_{i}{'.jpeg'}"
     os.rename(

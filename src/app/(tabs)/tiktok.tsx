@@ -6,6 +6,7 @@ import Video from "../model/Video";
 
 import videos from "~/assets/data/videos.json";
 import { finishSubsceneTracking, initTracking } from "~/assets/tracker/tracker-agent";
+import {trackingActive} from "../utils/contants";
 
 const fakeProfile = {
     id: "1",
@@ -91,12 +92,26 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
 
     const [ready, setReady] = useState(false);
 
+    const [elapsed, setElapsed] = useState(0);
+
+    useEffect(() => {
+        const start = Date.now();
+
+        const interval = setInterval(() => {
+            setElapsed(Date.now() - start);
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
     useEffect(() => {
         let alive = true;
 
         (async () => {
             try {
-                await initTracking(1);
+                if (trackingActive) {
+                    await initTracking(1);
+                }
             } catch (error) {
                 // handle or ignore
             } finally {
@@ -116,12 +131,14 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
     }, [activeIndex]);
 
     useEffect(() => {
-        if (!likedPost || !commentedPost || !scrolled) return;
+        if (Math.floor(elapsed / 1000) <= (3 * 60)) return;
 
         console.log("Finished tracking for this scene");
-        finishSubsceneTracking();
+        if (trackingActive) {
+            finishSubsceneTracking();
+        }
         onTasksCompleted();
-    }, [likedPost, commentedPost, scrolled, onTasksCompleted]);
+    }, [likedPost, commentedPost, scrolled, elapsed, onTasksCompleted]);
 
     if (!ready) {
         return (

@@ -12,6 +12,7 @@ import { ActivityIndicator, FlatList, View } from "react-native";
 import FacebookPostCard from "../components/facebook/FacebookPostCard";
 import CommentsSection from "../components/CommentsSection";
 import { finishExperiment, finishTracking, initTracking } from "~/assets/tracker/tracker-agent";
+import {trackingActive} from "../utils/contants";
 
 const fakeProfile = {
     username: "GDylan",
@@ -39,12 +40,26 @@ export default function FacebookFeed({ onTasksCompleted }: FacebookFeedProps) {
 
     const [ready, setReady] = useState(false);
 
+    const [elapsed, setElapsed] = useState(0);
+
+    useEffect(() => {
+        const start = Date.now();
+
+        const interval = setInterval(() => {
+            setElapsed(Date.now() - start);
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
     useEffect(() => {
         let alive = true;
 
         (async () => {
             try {
-                await initTracking(2);
+                if (trackingActive) {
+                    await initTracking(2);
+                }
             } catch (error) {
                 // handle or ignore
             } finally {
@@ -58,13 +73,15 @@ export default function FacebookFeed({ onTasksCompleted }: FacebookFeedProps) {
     }, [])
 
     useEffect(() => {
-        if (!likedPost || !commentedPost || !scrolled) return;
+        if (Math.floor(elapsed / 1000) <= (3 * 60)) return;
 
         console.log("Finished tracking for this scene");
-        finishTracking(null);
-        finishExperiment();
+        if (trackingActive) {
+            finishTracking(null);
+            finishExperiment();
+        }
         onTasksCompleted();
-    }, [likedPost, commentedPost, scrolled, onTasksCompleted]);
+    }, [likedPost, commentedPost, scrolled, elapsed, onTasksCompleted]);
 
 
     const toggleLike = (id: string) => {

@@ -6,6 +6,7 @@ import { initTracking, startExperiment, finishSubsceneTracking } from "~/assets/
 import { registerID } from "~/assets/tracker/tracker-agent";
 
 import { v4 as uuidva4 } from "uuid";
+import { trackingActive } from "../utils/contants";
 
 type FeedScreenProps = {
     onTasksCompleted: () => void;
@@ -17,6 +18,18 @@ export default function FeedScreen({ onTasksCompleted }: FeedScreenProps) {
     const [commentedPost, setCommentedPost] = useState(false);
     const [scrolled, setScrolled] = useState(false); // TODO
 
+    const [elapsed, setElapsed] = useState(0);
+
+    useEffect(() => {
+        const start = Date.now();
+
+        const interval = setInterval(() => {
+            setElapsed(Date.now() - start);
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
 
     const [ready, setReady] = useState(false);
 
@@ -26,8 +39,10 @@ export default function FeedScreen({ onTasksCompleted }: FeedScreenProps) {
 
         (async () => {
             try {
-                await startExperiment();
-                await initTracking(0);
+                if (trackingActive) {
+                    await startExperiment();
+                    await initTracking(0);
+                }
                 // await registerID(uuidva4());
             } catch (error) {
                 // handle or ignore
@@ -43,12 +58,15 @@ export default function FeedScreen({ onTasksCompleted }: FeedScreenProps) {
     }, [])
 
     useEffect(() => {
-        if (!likedPost || !commentedPost || !scrolled) return;
+        console.log(elapsed);
+        if (Math.floor(elapsed / 1000) <= (3 * 60)) return;
 
         console.log("Finished tracking for this scene");
-        finishSubsceneTracking();
+        if (trackingActive) {
+            finishSubsceneTracking();
+        }
         onTasksCompleted();
-    }, [likedPost, commentedPost, scrolled, onTasksCompleted]);
+    }, [likedPost, commentedPost, scrolled, elapsed, onTasksCompleted]);
 
 
     if (!ready) {
