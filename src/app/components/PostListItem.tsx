@@ -143,7 +143,7 @@ export default function PostListItem({ post, setCommentedPost, setLikedPost }: P
             </View>
 
             <CommentsSection selectedPost={post} setShowComments={setShowComments} showComments={showComments}
-                username={"FakeUserName"} setCommentedPost={setCommentedPost} />
+                username={"ExperimentUser"} setCommentedPost={setCommentedPost} />
         </View >
     )
 }

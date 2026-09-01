@@ -4,21 +4,14 @@ import FeedItem from "~/src/app/components/tiktok/FeedItem";
 import CommentsSection from "../components/CommentsSection";
 import Video from "../model/Video";
 
-import videos from "~/assets/data/videos.json";
+import localVideos from "~/assets/data/videos.json";
 import { finishSubsceneTracking, initTracking } from "~/assets/tracker/tracker-agent";
-import {trackingActive} from "../utils/contants";
-
-const fakeProfile = {
-    id: "1",
-    image_url: "https://dylan.carvajal.es/wp-content/uploads/2023/07/IMG_4237-1024x967.jpg",
-    username: "GDylan",
-    description: "University of Oviedo, Asturias - Spain",
-    avatar_url: "https://dylan.carvajal.es/wp-content/uploads/2023/07/IMG_4237-1024x967.jpg",
-    followers: 1284,
-    following: 312,
-};
+import { trackingActive } from "../utils/contants";
+import { fetchPixabayVideos } from "../utils/pixabay"; // adjust path to wherever you place pixabay.ts
 
 const { height: screenHeight } = Dimensions.get("window");
+
+const TARGET_VIDEO_COUNT = 50;
 
 type FeedScreenProps = {
     onTasksCompleted: () => void;
@@ -30,13 +23,14 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
     const [commentedPost, setCommentedPost] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
+    // videos now lives in state: starts as local JSON, then gets topped up
+    // with Pixabay results once fetched, up to TARGET_VIDEO_COUNT total.
+    const [videos, setVideos] = useState<Video[]>(localVideos as unknown as Video[]);
+    const [videosReady, setVideosReady] = useState(false);
+
     const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
-    const [likeCounts, setLikeCounts] = useState<Record<string, number>>(
-        Object.fromEntries(videos.map((p) => [p.id, p.likes]))
-    );
-    const [commentCounts, setCommentCounts] = useState<Record<string, number>>(
-        Object.fromEntries(videos.map((p) => [p.id, p.comments?.length ?? 0]))
-    );
+    const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
+    const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
     const [activePost, setActivePost] = useState<Video | null>(null);
     const [showComments, setShowComments] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
@@ -94,6 +88,40 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
 
     const [elapsed, setElapsed] = useState(0);
 
+    // Fetch and merge Pixabay videos on mount, topping up to TARGET_VIDEO_COUNT.
+    useEffect(() => {
+        let alive = true;
+
+        (async () => {
+            const needed = TARGET_VIDEO_COUNT - localVideos.length;
+
+            if (needed <= 0) {
+                if (alive) setVideosReady(true);
+                return;
+            }
+
+            try {
+                const pixabayVideos = await fetchPixabayVideos(needed);
+                if (!alive) return;
+                setVideos([...(localVideos as unknown as Video[]), ...pixabayVideos]);
+            } catch (err) {
+                console.warn("Failed to fetch Pixabay videos, continuing with local set only:", err);
+            } finally {
+                if (alive) setVideosReady(true);
+            }
+        })();
+
+        return () => {
+            alive = false;
+        };
+    }, []);
+
+    // Derive like/comment count maps whenever the merged video list changes.
+    useEffect(() => {
+        setLikeCounts(Object.fromEntries(videos.map((p) => [p.id, p.likes ? p.likes : 0])));
+        setCommentCounts(Object.fromEntries(videos.map((p) => [p.id, p.comments?.length ?? 0])));
+    }, [videos]);
+
     useEffect(() => {
         const start = Date.now();
 
@@ -131,7 +159,7 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
     }, [activeIndex]);
 
     useEffect(() => {
-        if (Math.floor(elapsed / 1000) <= (3 * 60)) return;
+        if (Math.floor(elapsed / 1000) <= 60) return;
 
         console.log("Finished tracking for this scene");
         if (trackingActive) {
@@ -184,7 +212,7 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
                     showComments={showComments}
                     setShowComments={setShowComments}
                     selectedPost={activePost}
-                    username={fakeProfile.username}
+                    username={"ExperimentUser"}
                     onComment={() => {
                         setCommentCounts((prev) => ({
                             ...prev,

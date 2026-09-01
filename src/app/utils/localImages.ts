@@ -111,6 +111,8 @@ import VID_3 from "~/assets/videos/VID_3.mp4";
 import VID_5 from "~/assets/videos/VID_5.mp4";
 import VID_6 from "~/assets/videos/VID_6.mp4";
 import VID_7 from "~/assets/videos/VID_7.mp4";
+import VID_8 from "~/assets/videos/VID_8.mov";
+import VID_9 from "~/assets/videos/VID_9.mov";
 
 const localImageMap: Record<string, ImageSourcePropType> = {
   IMG_1: img1,
@@ -225,6 +227,8 @@ const localVideoMap: Record<string, number> = {
   VID_5: VID_5,
   VID_6: VID_6,
   VID_7: VID_7,
+  VID_8: VID_8,
+  VID_9: VID_9,
 }
 
 export function resolveLocalImageSource(value?: string): ImageSourcePropType {

@@ -59,7 +59,7 @@ export default function FeedScreen({ onTasksCompleted }: FeedScreenProps) {
 
     useEffect(() => {
         console.log(elapsed);
-        if (Math.floor(elapsed / 1000) <= (3 * 60)) return;
+        if (Math.floor(elapsed / 1000) <= 60) return;
 
         console.log("Finished tracking for this scene");
         if (trackingActive) {

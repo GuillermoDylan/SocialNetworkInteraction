@@ -15,7 +15,7 @@ import { finishExperiment, finishTracking, initTracking } from "~/assets/tracker
 import {trackingActive} from "../utils/contants";
 
 const fakeProfile = {
-    username: "GDylan",
+    username: "ExperimentUser",
 };
 
 type FacebookFeedProps = {
@@ -73,7 +73,7 @@ export default function FacebookFeed({ onTasksCompleted }: FacebookFeedProps) {
     }, [])
 
     useEffect(() => {
-        if (Math.floor(elapsed / 1000) <= (3 * 60)) return;
+        if (Math.floor(elapsed / 1000) <= 60) return;
 
         console.log("Finished tracking for this scene");
         if (trackingActive) {
