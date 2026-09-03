@@ -6,7 +6,7 @@ export default {
     "instruction.2.title": "Segunda parte",
     "instruction.2.text": "Ahora veras otra red social con videos. Navega, da like y comenta como harías normalmente. Esta tarea durará 1 minuto.",
     "instruction.3.title": "Última parte",
-    "instruction.3.text": "Por último, navegaras a través de una red social con posts. vega, da like y comenta como harías normalmente. Esta tarea durará 1 minuto.",
-    "end.title": "Finalizado",
+    "instruction.3.text": "Por último, navegaras a través de una red social con posts. Navega, da like y comenta como harías normalmente. Esta tarea durará 1 minuto.",
+    "end.title": "Tareas Finalizadas",
     "end.text": "¡Gracias por participar!",
 };
