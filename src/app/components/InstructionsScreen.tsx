@@ -30,7 +30,6 @@ export default function InstructionScreen({
 
   useEffect(() => {
     state = !isEmittingData();
-    console.log(state);
   }, [state])
 
   return (

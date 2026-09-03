@@ -63,7 +63,6 @@ export default function FeedItem({
 
         if (lastTap && now - lastTap < 300) {
             liked = true;
-            console.log(event.nativeEvent)
             triggerDoubleTapHeart(offsetX, offsetY);
             setLastTap(null);
         } else {

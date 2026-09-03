@@ -53,7 +53,6 @@ export default function PostListItem({ post, setCommentedPost, setLikedPost }: P
 
         if (lastTap && now - lastTap < 300) {
             liked.value = withSpring(1);
-            console.log(event.nativeEvent)
             triggerDoubleTapHeart(offsetX, offsetY);
             setLastTap(null);
         } else {

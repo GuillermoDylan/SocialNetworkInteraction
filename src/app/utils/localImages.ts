@@ -106,13 +106,13 @@ import img102 from "~/assets/images/IMG_99.jpeg";
 
 import cat from "~/assets/videos/cat.mp4";
 import VID_1 from "~/assets/videos/VID_1.mp4";
-import VID_2 from "~/assets/videos/VID_2.mov";
+import VID_2 from "~/assets/videos/VID_2.mp4";
 import VID_3 from "~/assets/videos/VID_3.mp4";
 import VID_5 from "~/assets/videos/VID_5.mp4";
 import VID_6 from "~/assets/videos/VID_6.mp4";
 import VID_7 from "~/assets/videos/VID_7.mp4";
-import VID_8 from "~/assets/videos/VID_8.mov";
-import VID_9 from "~/assets/videos/VID_9.mov";
+import VID_8 from "~/assets/videos/VID_8.mp4";
+import VID_9 from "~/assets/videos/VID_9.mp4";
 
 const localImageMap: Record<string, ImageSourcePropType> = {
   IMG_1: img1,
