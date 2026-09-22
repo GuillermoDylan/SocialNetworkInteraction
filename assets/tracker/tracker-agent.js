@@ -1,7 +1,7 @@
 /**
  * Contains the global configuration and state of the tracking system.
  */
-const VERSION = 4;
+const VERSION = 5;
 
 const EVENT_ON_MOUSE_MOVE = 0;
 const EVENT_ON_CLICK = 1;
@@ -10,6 +10,10 @@ const EVENT_ON_MOUSE_DOWN = 3;
 const EVENT_ON_MOUSE_UP = 4;
 const EVENT_ON_WHEEL = 5;
 const EVENT_CONTEXT_MENU = 6;
+const EVENT_POINTER_MOVE = 7;
+const EVENT_POINTER_DOWN = 8;
+const EVENT_POINTER_UP = 9;
+const EVENT_POINTER_CANCEL = 10;
 const EVENT_WINDOW_SCROLL = 11;
 const EVENT_WINDOW_RESIZE = 12;
 const EVENT_KEY_DOWN = 13;
@@ -19,31 +23,34 @@ const EVENT_FOCUS = 16;
 const EVENT_BLUR = 17;
 const EVENT_ON_CHANGE_SELECTION_OBJECT = 18;
 const EVENT_ON_CLICK_SELECTION_OBJECT = 19;
-const EVENT_POINTER_DOWN = 20;
-const EVENT_POINTER_UP = 21;
-const EVENT_POINTER_MOVE = 22;
-const EVENT_POINTER_CANCEL = 23;
+const EVENT_GAZE = 20;
 const EVENT_INIT_TRACKING = 100;
 const EVENT_TRACKING_END = 200;
+
 const COMPONENT_TEXT_FIELD = 1;
 const COMPONENT_COMBOBOX = 2;
 const COMPONENT_OPTION = 3;
 const COMPONENT_RADIO_BUTTON = 4;
 const COMPONENT_CHECK_BOX = 5;
 
+const idExperiment = 6;
 
-import { v4 as uuidva4 } from "uuid";
+/**
+ * localStorage key for this experiment's session ID, scoped per experiment.
+ */
+function getUserStorageKey() {
+    return "user_" + idExperiment;
+}
 
 /**
  * Returns the persistent session user ID, creating one if it does not exist.
- * The ID is stored in localStorage so it survives page reloads within the same session.
- * @returns {string} UUID identifying the current user session.
  */
 function createUser() {
-    if (localStorage.getItem("user") === null) {
-        localStorage.setItem("user", uuidva4());
+    const key = getUserStorageKey();
+    if (localStorage.getItem(key) === null) {
+        localStorage.setItem(key, crypto.randomUUID());
     }
-    return localStorage.getItem("user");
+    return localStorage.getItem(key);
 }
 
 const user = createUser();
@@ -58,14 +65,19 @@ let pendingBackgroundsDelivered = 0;
 let backgroundsDelivered = 0;
 let eventsDelivered = false;
 let finishedExperiment = false;
+let leftPage = false;
 let newPage = null;
 let emittingData = false;
 let recordBackground = true;
 let trackingAbortController = null;
+let gazeTrackingEnabled = false;
+let gazeSampleIntervalMs = 200;
+let lastGazeSampleTs = 0;
+let gazeStarted = false;
+let lastPointerType = 'mouse';
 
 const elements = [];
 const TOP_LIMIT = 50;
-const idExperiment = 6;
 const urlBase = "https:\/\/156-35-163-141.nip.io";
 const url = urlBase + '/TrackerServer/restws/track';
 const urlBackgroundTracker = urlBase + '/TrackerServer/restws/backgroundTracker';
@@ -74,6 +86,7 @@ const urlRegisterUserData = urlBase + '/TrackerServer/restws/registerUserData';
 const urlDemographicData = urlBase + '/TrackerServer/restws/registerDemographicData';
 const urlExperimentStatus = urlBase + '/TrackerServer/restws/experiment/status/' + idExperiment;
 const urlBackgroundRecording = urlBase + '/TrackerServer/restws/experiment/backgroundRecording/' + idExperiment;
+const urlEyeTrackingEnabled = urlBase + '/TrackerServer/restws/experiment/eyeTrackingEnabled/' + idExperiment;
 
 /**
  * Auxiliary and helper functions for the entire tracking system.
@@ -124,17 +137,19 @@ function getTimezone() {
  * Must be called once before any tracking begins.
  * @returns {Promise<void>}
  */
-export async function startExperiment() {
+async function startExperiment() {
     console.log("Creating user session " + user);
     await getExperimentStatus();
     await getBackgroundRecordingStatus();
+    await getEyeTrackingEnabledStatus();
     await registerUserData();
 }
 
 /**
  * Marks the whole experiment as finished so the participant's session ID is removed
  * from localStorage once the current page's pending requests complete, preventing it
- * from being reused on a future visit.
+ * from being reused on a future visit. Also releases the webcam/model if gaze
+ * tracking was running, since no further scenes will request it.
  *
  * This is separate from finishTracking()/finishSubsceneTracking() (in
  * tracker-events.js), which only end tracking for the current scene. In a
@@ -142,8 +157,9 @@ export async function startExperiment() {
  * call finishExperiment() exactly once, on the truly last page — otherwise the
  * session ID is never cleaned up.
  */
-export function finishExperiment() {
+function finishExperiment() {
     finishedExperiment = true;
+    if (gazeTrackingEnabled && typeof webgazer !== 'undefined') { webgazer.end(); }
 }
 
 /**
@@ -159,7 +175,6 @@ async function getBackgroundRecordingStatus() {
         recordBackground = (text.trim() === 'true');
     } catch {
         // If check fails, recordBackground remains true
-        console.log("Failed to recordBackground")
     }
 }
 
@@ -231,6 +246,27 @@ async function deliverSnapshot(sceneId, canvas) {
 }
 
 /**
+ * Detects browser name and version from the User-Agent string.
+ * @param {string} ua - navigator.userAgent string.
+ * @returns {{browserName: string, browserVersion1b: string}}
+ */
+function detectBrowser(ua) {
+    const patterns = [
+        ['Edge', /Edg(?:e|A|iOS)?\/([\d.]+)/],
+        ['Samsung Internet', /SamsungBrowser\/([\d.]+)/],
+        ['Opera', /(?:OPR|OPiOS|Opera)\/([\d.]+)/],
+        ['Firefox', /(?:Firefox|FxiOS)\/([\d.]+)/],
+        ['Chrome', /(?:Chrome|CriOS)\/([\d.]+)/],
+        ['Safari', /Version\/([\d.]+).*Safari/],
+    ];
+    for (const [browserName, regex] of patterns) {
+        const match = ua.match(regex);
+        if (match) return { browserName, browserVersion1b: match[1] };
+    }
+    return { browserName: 'Unknown', browserVersion1b: 'Unknown' };
+}
+
+/**
  * Collects and sends browser, device, and screen metadata for the current session
  * to the tracker server. Does nothing if tracking is not emitting.
  * @returns {Promise<void>}
@@ -244,9 +280,7 @@ async function registerUserData() {
     if (ua.includes("Gecko/")) browserEngine = "Gecko";
     else if (ua.includes("AppleWebKit/")) browserEngine = "Blink/WebKit";
 
-    const brandEntry = navigator.userAgentData?.brands?.find(b => !b.brand.includes("Not"));
-    const browserName = brandEntry?.brand ?? "Unknown";
-    const browserVersion1b = brandEntry?.version ?? "Unknown";
+    const { browserName, browserVersion1b } = detectBrowser(ua);
 
     const parametros = {
         "timezone": getTimezone(),
@@ -312,7 +346,6 @@ async function getExperimentStatus() {
         emittingData = (responseText === 'OPEN');
     } catch {
         // If check fails, emittingData remains false
-        console.log("Failed to getExperimentStatus")
     }
 }
 
@@ -407,8 +440,9 @@ export function registerElement(id, x, y, xF, yF, typeId, sceneId) {
 export function addFocusAndBlurEvents(elementId) {
     const element = document.getElementById(elementId);
     if (element != null) {
-        element.addEventListener('focus', trackFocusEvent);
-        element.addEventListener('blur', trackBlurEvent);
+        const signal = trackingAbortController?.signal;
+        element.addEventListener('focus', trackFocusEvent, { signal });
+        element.addEventListener('blur', trackBlurEvent, { signal });
     }
 }
 
@@ -421,9 +455,209 @@ export function addFocusAndBlurEvents(elementId) {
 function addSelectionEvent(elementId) {
     const element = document.getElementById(elementId);
     if (element != null) {
-        element.addEventListener('change', trackOnChangeSelectionEvent);
-        element.addEventListener('click', trackOnClickSelectionEvent);
+        const signal = trackingAbortController?.signal;
+        element.addEventListener('change', trackOnChangeSelectionEvent, { signal });
+        element.addEventListener('click', trackOnClickSelectionEvent, { signal });
     }
+}
+
+/**
+ * Webcam-based gaze tracking via WebGazer.js
+ */
+
+/**
+ * Fetches the eye-tracking setting for the current experiment and updates the global
+ * gazeTrackingEnabled flag. Fails closed: camera access must never be requested as a
+ * side effect of a network error.
+ * @returns {Promise<void>}
+ */
+async function getEyeTrackingEnabledStatus() {
+    try {
+        const response = await fetch(urlEyeTrackingEnabled);
+        if (!response.ok) return;
+        const text = await response.text();
+        gazeTrackingEnabled = (text.trim() === 'true');
+    } catch {
+        // If check fails, gazeTrackingEnabled remains false
+    }
+}
+
+/**
+ * Shows a full-screen consent overlay asking the participant to allow webcam-based
+ * gaze tracking. This is independent of the browser's native camera permission prompt,
+ * which is requested afterwards only if the participant accepts here.
+ * @returns {Promise<boolean>} true if the participant accepted, false if declined.
+ */
+function requestGazeConsent() {
+    return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,0.85);'
+            + 'display:flex;align-items:center;justify-content:center;font-family:sans-serif;';
+
+        const box = document.createElement('div');
+        box.style.cssText = 'background:#fff;color:#111;padding:24px;border-radius:8px;max-width:420px;text-align:center;';
+
+        const text = document.createElement('p');
+        text.style.cssText = 'margin:0 0 16px;';
+        text.textContent = 'This experiment would like to use your webcam to track where you look on the '
+            + 'screen. Video is processed locally in your browser; only gaze coordinates are recorded.';
+        box.appendChild(text);
+
+        const acceptBtn = document.createElement('button');
+        acceptBtn.textContent = 'Accept';
+        acceptBtn.style.cssText = 'margin-right:8px;padding:8px 16px;cursor:pointer;';
+        const declineBtn = document.createElement('button');
+        declineBtn.textContent = 'Decline';
+        declineBtn.style.cssText = 'padding:8px 16px;cursor:pointer;';
+
+        acceptBtn.addEventListener('click', () => { document.body.removeChild(overlay); resolve(true); });
+        declineBtn.addEventListener('click', () => { document.body.removeChild(overlay); resolve(false); });
+
+        box.appendChild(acceptBtn);
+        box.appendChild(declineBtn);
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+    });
+}
+
+/**
+ * Shows a 9-point calibration overlay. Each dot must be clicked 5 times while the
+ * participant looks at it; WebGazer's own click listener (already active once
+ * webgazer.begin() has resolved) learns from these clicks, so no explicit WebGazer
+ * calibration API needs to be called here.
+ * @returns {Promise<void>} Resolves once all 9 dots have been clicked enough times.
+ */
+function runGazeCalibration() {
+    return new Promise((resolve) => {
+        const REQUIRED_CLICKS = 5;
+        const positions = [[10, 10], [50, 10], [90, 10], [10, 50], [50, 50], [90, 50], [10, 90], [50, 90], [90, 90]];
+
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,0.9);';
+
+        const message = document.createElement('div');
+        message.textContent = 'Look at each dot and click it 5 times.';
+        message.style.cssText = 'position:absolute;top:16px;left:0;right:0;text-align:center;color:#fff;font-family:sans-serif;';
+        overlay.appendChild(message);
+
+        let remaining = positions.length;
+        positions.forEach(([leftPct, topPct]) => {
+            let clicks = 0;
+            const dot = document.createElement('div');
+            dot.style.cssText = `position:absolute;left:${leftPct}%;top:${topPct}%;transform:translate(-50%,-50%);`
+                + 'width:24px;height:24px;border-radius:50%;background:#f00;cursor:pointer;';
+            dot.addEventListener('click', () => {
+                clicks++;
+                if (clicks >= REQUIRED_CLICKS) {
+                    dot.style.background = '#0f0';
+                    dot.style.pointerEvents = 'none';
+                    remaining--;
+                    if (remaining === 0) {
+                        document.body.removeChild(overlay);
+                        resolve();
+                    }
+                } else {
+                    dot.style.opacity = String(1 - (clicks / REQUIRED_CLICKS) * 0.5);
+                }
+            });
+            overlay.appendChild(dot);
+        });
+
+        document.body.appendChild(overlay);
+    });
+}
+
+/**
+ * Starts webcam-based gaze tracking: asks for participant consent (once per tab
+ * session), starts WebGazer, runs calibration (once per tab session), and attaches the
+ * gaze listener. Never throws — any failure (library not loaded, camera denied, no
+ * webcam) degrades to a no-op so the rest of the tracking pipeline is unaffected.
+ * If WebGazer was already started earlier in this tab session (e.g. a previous scene),
+ * this only resumes it — begin() must be called at most once per page load, otherwise
+ * WebGazer reinitializes its model and camera stream from scratch on every scene.
+ * @returns {Promise<void>}
+ */
+async function startGazeTracking() {
+    if (typeof webgazer === 'undefined') return;
+
+    let consent = sessionStorage.getItem('hci_gaze_consent');
+    if (consent === null) {
+        consent = (await requestGazeConsent()) ? 'granted' : 'denied';
+        sessionStorage.setItem('hci_gaze_consent', consent);
+    }
+    if (consent !== 'granted') return;
+
+    if (gazeStarted) {
+        webgazer.resume();
+        return;
+    }
+
+    try {
+        // WebGazer's TFFacemesh tracker resolves this path relative to the host page's
+        // own origin (not webgazer.js's origin), so without this it 404s on any page
+        // that doesn't also self-host WebGazer's www/mediapipe/face_mesh/ folder.
+        webgazer.params.faceMeshSolutionPath = 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh';
+        await webgazer.begin();
+    } catch (error) {
+        console.log("Error starting gaze tracking: " + error.message);
+        sessionStorage.setItem('hci_gaze_consent', 'denied');
+        return;
+    }
+    gazeStarted = true;
+    webgazer.showVideoPreview(false).showPredictionPoints(false);
+
+    if (!sessionStorage.getItem('hci_gaze_calibrated')) {
+        await runGazeCalibration();
+        sessionStorage.setItem('hci_gaze_calibrated', 'true');
+    }
+
+    webgazer.setGazeListener(onGazeData);
+}
+
+/**
+ * WebGazer gaze callback, throttled to gazeSampleIntervalMs (see tracker-config.js).
+ * Builds a tracking item the same way trackWithPointerEvent does and appends it to the
+ * shared pending list, flushing at TOP_LIMIT like every other event source.
+ * @param {{x: number, y: number}|null} data - Predicted gaze point in viewport coordinates.
+ * @returns {void}
+ */
+function onGazeData(data) {
+    if (!data || !trackingOn) return;
+    const now = Date.now();
+    if (now - lastGazeSampleTs < gazeSampleIntervalMs) return;
+    lastGazeSampleTs = now;
+
+    const item = {};
+    item.id = eventCounter++;
+    item.sceneId = sceneId;
+    item.sessionId = user;
+    item.eventType = EVENT_GAZE;
+    item.timeStamp = now;
+    item.x = Math.round(data.x + window.scrollX);
+    item.y = Math.round(data.y + window.scrollY);
+    item.keyValueEvent = "gaze:-1";
+    item.keyCodeEvent = -1;
+    item.elementId = detectElement(item.x, item.y);
+
+    list.push(item);
+
+    if (list.length >= TOP_LIMIT) {
+        const deliverPackage = list;
+        list = [];
+        deliverData(deliverPackage).catch(console.error);
+    }
+}
+
+/**
+ * Pauses gaze tracking without releasing the camera or reloading the WebGazer model, so
+ * it can resume instantly on the next scene without re-requesting permission. No-op if
+ * gaze tracking was never started (not enabled, consent denied, or library missing).
+ * @returns {void}
+ */
+function stopGazeTracking() {
+    if (typeof webgazer === 'undefined') return;
+    if (sessionStorage.getItem('hci_gaze_consent') !== 'granted') return;
+    webgazer.pause();
 }
 
 /**
@@ -514,6 +748,8 @@ export async function initTracking(_sceneId) {
     console.log("Initializing tracking for scene " + _sceneId);
     await trackEvent(EVENT_INIT_TRACKING);
 
+    if (gazeTrackingEnabled) { await startGazeTracking(); }
+
     const target = parent;
     target.addEventListener('scroll', trackWindowScroll, { signal });
     target.addEventListener('resize', trackWindowResize, { signal });
@@ -534,22 +770,22 @@ export async function initTracking(_sceneId) {
     target.addEventListener('pointercancel', trackPointerCancel, { signal });
 }
 
-/** @param {MouseEvent} event */ function trackMouseMovement(event) { trackWithEvent(EVENT_ON_MOUSE_MOVE, event).catch(console.error); }
-/** @param {MouseEvent} event */ function trackClick(event) { trackWithEvent(EVENT_ON_CLICK, event).catch(console.error); }
-/** @param {MouseEvent} event */ function trackDblclick(event) { trackWithEvent(EVENT_ON_DOUBLE_CLICK, event).catch(console.error); }
-/** @param {MouseEvent} event */ function trackMouseDown(event) { trackWithEvent(EVENT_ON_MOUSE_DOWN, event).catch(console.error); }
-/** @param {MouseEvent} event */ function trackMouseUp(event) { trackWithEvent(EVENT_ON_MOUSE_UP, event).catch(console.error); }
-/** @param {WheelEvent} event */ function trackWheel(event) { trackWithEvent(EVENT_ON_WHEEL, event).catch(console.error); }
-/** @param {MouseEvent} event */ function trackContextmenu(event) { trackWithEvent(EVENT_CONTEXT_MENU, event).catch(console.error); }
+/** @param {MouseEvent} event */ function trackMouseMovement(event) { if (lastPointerType === 'mouse') trackWithEvent(EVENT_ON_MOUSE_MOVE, event).catch(console.error); }
+/** @param {MouseEvent} event */ function trackClick(event) { if (lastPointerType === 'mouse') trackWithEvent(EVENT_ON_CLICK, event).catch(console.error); }
+/** @param {MouseEvent} event */ function trackDblclick(event) { if (lastPointerType === 'mouse') trackWithEvent(EVENT_ON_DOUBLE_CLICK, event).catch(console.error); }
+/** @param {MouseEvent} event */ function trackMouseDown(event) { if (lastPointerType === 'mouse') trackWithEvent(EVENT_ON_MOUSE_DOWN, event).catch(console.error); }
+/** @param {MouseEvent} event */ function trackMouseUp(event) { if (lastPointerType === 'mouse') trackWithEvent(EVENT_ON_MOUSE_UP, event).catch(console.error); }
+/** @param {WheelEvent} event */ function trackWheel(event) { if (lastPointerType === 'mouse') trackWithEvent(EVENT_ON_WHEEL, event).catch(console.error); }
+/** @param {MouseEvent} event */ function trackContextmenu(event) { if (lastPointerType === 'mouse') trackWithEvent(EVENT_CONTEXT_MENU, event).catch(console.error); }
 /** @param {Event} event */ function trackWindowScroll(event) { trackWithEvent(EVENT_WINDOW_SCROLL, event).catch(console.error); }
 /** @param {UIEvent} event */ function trackWindowResize(event) { trackWithEvent(EVENT_WINDOW_RESIZE, event).catch(console.error); }
 /** @param {KeyboardEvent} event */ function trackEventKeydown(event) { trackWithEvent(EVENT_KEY_DOWN, event).catch(console.error); }
 /** @param {KeyboardEvent} event */ function trackEventKeypress(event) { trackWithEvent(EVENT_KEY_PRESS, event).catch(console.error); }
 /** @param {KeyboardEvent} event */ function trackEventKeyup(event) { trackWithEvent(EVENT_KEY_UP, event).catch(console.error); }
-/** @param {PointerEvent} event */ function trackPointerDown(event) { if (event.pointerType !== 'mouse') { trackWithPointerEvent(EVENT_POINTER_DOWN, event).catch(console.error); } }
-/** @param {PointerEvent} event */ function trackPointerUp(event) { if (event.pointerType !== 'mouse') { trackWithPointerEvent(EVENT_POINTER_UP, event).catch(console.error); } }
-/** @param {PointerEvent} event */ function trackPointerMove(event) { if (event.pointerType !== 'mouse') { trackWithPointerEvent(EVENT_POINTER_MOVE, event).catch(console.error); } }
-/** @param {PointerEvent} event */ function trackPointerCancel(event) { if (event.pointerType !== 'mouse') { trackWithPointerEvent(EVENT_POINTER_CANCEL, event).catch(console.error); } }
+/** @param {PointerEvent} event */ function trackPointerDown(event) { lastPointerType = event.pointerType; if (event.pointerType !== 'mouse') { trackWithPointerEvent(EVENT_POINTER_DOWN, event).catch(console.error); } }
+/** @param {PointerEvent} event */ function trackPointerUp(event) { lastPointerType = event.pointerType; if (event.pointerType !== 'mouse') { trackWithPointerEvent(EVENT_POINTER_UP, event).catch(console.error); } }
+/** @param {PointerEvent} event */ function trackPointerMove(event) { lastPointerType = event.pointerType; if (event.pointerType !== 'mouse') { trackWithPointerEvent(EVENT_POINTER_MOVE, event).catch(console.error); } }
+/** @param {PointerEvent} event */ function trackPointerCancel(event) { lastPointerType = event.pointerType; if (event.pointerType !== 'mouse') { trackWithPointerEvent(EVENT_POINTER_CANCEL, event).catch(console.error); } }
 /** @param {FocusEvent} event */ function trackFocusEvent(event) { trackWithEvent(EVENT_FOCUS, event).catch(console.error); }
 /** @param {FocusEvent} event */ function trackBlurEvent(event) { trackWithEvent(EVENT_BLUR, event).catch(console.error); }
 /** @param {Event} event */ function trackOnChangeSelectionEvent(event) { trackWithEvent(EVENT_ON_CHANGE_SELECTION_OBJECT, event).catch(console.error); }
@@ -562,8 +798,8 @@ export async function initTracking(_sceneId) {
  * initTracking (they would otherwise only be removed by the next initTracking call).
  *
  * This does NOT mark the whole experiment as finished — it only ends the current
- * scene. If this is the last page of the experiment, you must also call
- * finishExperiment() (in tracker-helpers.js) once, otherwise the participant's
+ * scene. If this is the last page of the experiment, finishExperiment() (in
+ * tracker-helpers.js) must also be called once, otherwise the participant's
  * session ID is never removed from localStorage and will be reused on a future visit.
  * @param {string|null} _newPage - URL to navigate to after all data is delivered, or null.
  * @returns {Promise<void>}
@@ -575,6 +811,7 @@ export async function finishTracking(_newPage) {
         trackingAbortController.abort();
         trackingAbortController = null;
     }
+    if (gazeTrackingEnabled) { stopGazeTracking(); }
     await takeSnapshot(sceneId);
     await deliverData(list);
     list = [];
@@ -596,10 +833,12 @@ function checkReadyToLeave() {
             setTimeout(() => { checkReadyToLeave(); }, 2000);
             return;
         }
+        if (leftPage) return;
         console.log("Ready to leave page, pending request:" + pendingRequest + ", pending backgrounds " + pendingBackgroundsDelivered + "/" + backgroundsDelivered);
         if (finishedExperiment) {
-            console.log("Experiment finished, deleting user " + localStorage.getItem("user"));
-            localStorage.removeItem("user");
+            leftPage = true;
+            console.log("Experiment finished, deleting user " + localStorage.getItem(getUserStorageKey()));
+            localStorage.removeItem(getUserStorageKey());
         }
         if (newPage != null) {
             window.location.href = newPage;
@@ -614,13 +853,14 @@ function checkReadyToLeave() {
  * initTracking — call initTracking again before tracking the next sub-scene.
  * @returns {Promise<void>}
  */
-export async function finishSubsceneTracking() {
+async function finishSubsceneTracking() {
     await trackEvent(EVENT_TRACKING_END);
     trackingOn = false;
     if (trackingAbortController) {
         trackingAbortController.abort();
         trackingAbortController = null;
     }
+    if (gazeTrackingEnabled) { stopGazeTracking(); }
     await takeSnapshot(sceneId);
     await deliverData(list);
     list = [];
@@ -862,7 +1102,7 @@ async function getBackground(sessionId, sceneId) {
 /**
  * Parses a JSON tracking response and draws each event as a colored dot on the
  * canvas element with id "myCanvas". Color encodes the event type.
- * @param {string} response - JSON string with a `list` array of event objects.
+ * @param {string} response - JSON string with a list array of event objects.
  */
 function paintTracking(response) {
     const c = document.getElementById("myCanvas");
@@ -896,6 +1136,7 @@ function getColor(eventType) {
         case EVENT_ON_MOUSE_UP: return "#FF00FF";
         case EVENT_INIT_TRACKING: return "#74FF33";
         case EVENT_TRACKING_END: return "#336BFF";
+        case EVENT_GAZE: return "#00FFFF";
         default: return "#000F00";
     }
 }
@@ -963,6 +1204,3 @@ export function registerSexo(value) { postStringDD(48, value); }
 export function registerEdad(value) { postNumberDD(49, value); }
 export function registerNacionalidad(value) { postStringDD(50, value); }
 
-export function isEmittingData(){
-    return emittingData;
-}
