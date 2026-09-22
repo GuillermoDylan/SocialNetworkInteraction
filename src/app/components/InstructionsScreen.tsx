@@ -2,7 +2,7 @@ import { View, Text, Pressable, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useTranslation } from "react-i18next";
 
-import { isEmittingData } from "~/assets/tracker/tracker-agent";
+// import { isEmittingData } from "~/assets/tracker/tracker-agent";
 import { useEffect, useState } from "react";
 
 type InstructionScreenProps = {
@@ -28,9 +28,9 @@ export default function InstructionScreen({
     i18n.changeLanguage(lang);
   };
 
-  useEffect(() => {
-    state = !isEmittingData();
-  }, [state])
+  // useEffect(() => {
+  //   state = !isEmittingData();
+  // }, [state])
 
   return (
     <SafeAreaView className="flex-1 bg-white">
