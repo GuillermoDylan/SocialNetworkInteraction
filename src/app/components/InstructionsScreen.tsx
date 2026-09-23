@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 type InstructionScreenProps = {
   title: string;
   body: string;
+  boldBody?: string;
   buttonLabel?: string;
   onContinue: () => void;
   isFinish?: boolean;
@@ -16,6 +17,7 @@ type InstructionScreenProps = {
 export default function InstructionScreen({
   title,
   body,
+  boldBody,
   buttonLabel,
   onContinue,
   isFinish,
@@ -37,6 +39,7 @@ export default function InstructionScreen({
       <View className="flex-1 justify-center px-6">
         <Text className="text-2xl font-bold text-center mb-4">{t(title)}</Text>
         <Text className="text-base text-gray-700 text-center leading-6">{t(body)}</Text>
+        {boldBody && <Text className="text-base text-gray-700 text-center leading-6 font-bold">{t(boldBody)}</Text>}
         <Pressable onPress={() => toggleLanguage("en")} className="bg-gray-200 rounded-full py-4 items-center mb-3 w-36 mt-4 self-center">
           <Text className="text-black font-bold text-base">English</Text>
         </Pressable>

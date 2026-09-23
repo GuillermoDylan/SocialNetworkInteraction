@@ -21,6 +21,7 @@ export default function StudyFlow() {
                 <InstructionScreen
                     title="instruction.1.title"
                     body="instruction.1.text"
+                    boldBody="instruction.1.text.bold"
                     buttonLabel="btn.continue"
                     onContinue={() => setStep("instagram")}
                 />
@@ -43,6 +44,7 @@ export default function StudyFlow() {
                 <InstructionScreen
                     title="instruction.2.title"
                     body="instruction.2.text"
+                    boldBody="instruction.2.text.bold"
                     buttonLabel="btn.continue"
                     onContinue={() => {
                         setStep("tiktok");
@@ -66,6 +68,7 @@ export default function StudyFlow() {
                 <InstructionScreen
                     title="instruction.3.title"
                     body="instruction.3.text"
+                    boldBody="instruction.3.text.bold"
                     buttonLabel="btn.continue"
                     onContinue={() => {
                         setStep("facebook");
