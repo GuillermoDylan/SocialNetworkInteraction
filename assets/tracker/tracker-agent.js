@@ -1,7 +1,7 @@
 /**
  * Contains the global configuration and state of the tracking system.
  */
-const VERSION = 5;
+const VERSION = 6;
 
 const EVENT_ON_MOUSE_MOVE = 0;
 const EVENT_ON_CLICK = 1;
@@ -137,7 +137,7 @@ function getTimezone() {
  * Must be called once before any tracking begins.
  * @returns {Promise<void>}
  */
-async function startExperiment() {
+export async function startExperiment() {
     console.log("Creating user session " + user);
     await getExperimentStatus();
     await getBackgroundRecordingStatus();
@@ -157,7 +157,7 @@ async function startExperiment() {
  * call finishExperiment() exactly once, on the truly last page — otherwise the
  * session ID is never cleaned up.
  */
-function finishExperiment() {
+export function finishExperiment() {
     finishedExperiment = true;
     if (gazeTrackingEnabled && typeof webgazer !== 'undefined') { webgazer.end(); }
 }
@@ -452,7 +452,7 @@ export function addFocusAndBlurEvents(elementId) {
  * Does nothing if the element is not found in the document.
  * @param {string} elementId - DOM element ID.
  */
-function addSelectionEvent(elementId) {
+export function addSelectionEvent(elementId) {
     const element = document.getElementById(elementId);
     if (element != null) {
         const signal = trackingAbortController?.signal;
@@ -853,7 +853,7 @@ function checkReadyToLeave() {
  * initTracking — call initTracking again before tracking the next sub-scene.
  * @returns {Promise<void>}
  */
-async function finishSubsceneTracking() {
+export async function finishSubsceneTracking() {
     await trackEvent(EVENT_TRACKING_END);
     trackingOn = false;
     if (trackingAbortController) {
@@ -879,7 +879,7 @@ async function finishSubsceneTracking() {
  * @param {string} componentAssociated - ID of a related/parent component, if any.
  * @returns {Promise<void>}
  */
-async function registerComponent(sceneId, componentId, x, y, xF, yF, typeId, componentAssociated) {
+export async function registerComponent(sceneId, componentId, x, y, xF, yF, typeId, componentAssociated) {
     if (!emittingData) return;
 
     registerElement(componentId, x, y, xF, yF, typeId, sceneId);

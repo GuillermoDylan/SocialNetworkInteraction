@@ -159,7 +159,7 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
     }, [activeIndex]);
 
     useEffect(() => {
-        if (Math.floor(elapsed / 1000) <= 60) return;
+        if (!likedPost || (Math.floor(elapsed / 1000) <= 60) || !scrolled || !commentedPost) return;
 
         console.log("Finished tracking for this scene");
         if (trackingActive) {
