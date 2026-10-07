@@ -3,9 +3,7 @@ import posts from "~/assets/data/posts.json"
 import PostListItem from "../components/PostListItem";
 import { useEffect, useState } from "react";
 import { initTracking, startExperiment, finishSubsceneTracking } from "~/assets/tracker/tracker-agent";
-import { registerID } from "~/assets/tracker/tracker-agent";
 
-import { v4 as uuidva4 } from "uuid";
 import { trackingActive } from "../utils/contants";
 
 type FeedScreenProps = {

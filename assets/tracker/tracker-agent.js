@@ -1,7 +1,7 @@
 /**
  * Contains the global configuration and state of the tracking system.
  */
-const VERSION = 6;
+const VERSION = 8;
 
 const EVENT_ON_MOUSE_MOVE = 0;
 const EVENT_ON_CLICK = 1;
@@ -70,11 +70,18 @@ let newPage = null;
 let emittingData = false;
 let recordBackground = true;
 let trackingAbortController = null;
+let sceneEnd = null;
 let gazeTrackingEnabled = false;
 let gazeSampleIntervalMs = 200;
 let lastGazeSampleTs = 0;
 let gazeStarted = false;
 let lastPointerType = 'mouse';
+/** Last sample of every active touch/pen pointer, by pointerId. */
+const pointerSamples = new Map();
+/** Touch pointers the browser cancelled to scroll or zoom, by pointerId, followed through touch events. */
+const cancelledTouches = new Map();
+/** pointerId of every touch, by touch identifier. */
+const touchPointers = new Map();
 
 const elements = [];
 const TOP_LIMIT = 50;
@@ -94,16 +101,18 @@ const urlEyeTrackingEnabled = urlBase + '/TrackerServer/restws/experiment/eyeTra
 
 /**
  * Sends a POST request with a JSON body and returns the response as text.
- * @param {string} url - Endpoint URL.
- * @param {object} data - Object to serialize as JSON body.
+ * @param {string} url Endpoint URL.
+ * @param {object} data Object to serialize as JSON body.
+ * @param {{keepalive?: boolean}} [options] keepalive lets the request outlive the page.
  * @returns {Promise<string>} Response body text.
  * @throws {Error} If the response status is not OK.
  */
-async function postJSON(url, data) {
+async function postJSON(url, data, options = {}) {
     const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
+        keepalive: options.keepalive === true
     });
     if (!response.ok) throw new Error(response.statusText);
     return response.text();
@@ -111,8 +120,8 @@ async function postJSON(url, data) {
 
 /**
  * Sends a GET request with query parameters and returns the response as text.
- * @param {string} url - Endpoint URL (without query string).
- * @param {object} params - Key-value pairs appended as query parameters.
+ * @param {string} url Endpoint URL (without query string).
+ * @param {object} params Key-value pairs appended as query parameters.
  * @returns {Promise<string>} Response body text.
  * @throws {Error} If the response status is not OK.
  */
@@ -154,7 +163,7 @@ export async function startExperiment() {
  * This is separate from finishTracking()/finishSubsceneTracking() (in
  * tracker-events.js), which only end tracking for the current scene. In a
  * multi-page/multi-scene experiment, call finishTracking() on every scene change, but
- * call finishExperiment() exactly once, on the truly last page — otherwise the
+ * call finishExperiment() exactly once, on the truly last page, otherwise the
  * session ID is never cleaned up.
  */
 export function finishExperiment() {
@@ -183,7 +192,7 @@ async function getBackgroundRecordingStatus() {
  * tracker server associated with the given scene. Normalizes the canvas to CSS pixel
  * dimensions on HiDPI screens so coordinates match event positions.
  * Does nothing if tracking is not emitting or background recording is disabled.
- * @param {number} sceneId - ID of the scene being captured.
+ * @param {number} sceneId ID of the scene being captured.
  * @returns {Promise<void>}
  */
 async function takeSnapshot(sceneId) {
@@ -214,8 +223,8 @@ async function takeSnapshot(sceneId) {
 /**
  * Uploads a canvas snapshot as a PNG data URL to the background tracker endpoint.
  * Does nothing if tracking is not emitting.
- * @param {number} sceneId - ID of the scene the snapshot belongs to.
- * @param {HTMLCanvasElement} canvas - Canvas element to upload.
+ * @param {number} sceneId ID of the scene the snapshot belongs to.
+ * @param {HTMLCanvasElement} canvas Canvas element to upload.
  * @returns {Promise<void>}
  */
 async function deliverSnapshot(sceneId, canvas) {
@@ -247,7 +256,7 @@ async function deliverSnapshot(sceneId, canvas) {
 
 /**
  * Detects browser name and version from the User-Agent string.
- * @param {string} ua - navigator.userAgent string.
+ * @param {string} ua navigator.userAgent string.
  * @returns {{browserName: string, browserVersion1b: string}}
  */
 function detectBrowser(ua) {
@@ -309,6 +318,7 @@ async function registerUserData() {
         "scrColorDepth": screen.colorDepth,
         "scrPixelDepth": screen.pixelDepth,
         "touchDevice": ('ontouchstart' in window || navigator.maxTouchPoints > 0),
+        "scriptVersion": VERSION,
         "idExperiment": idExperiment,
         "sessionId": user
     };
@@ -358,12 +368,12 @@ async function getExperimentStatus() {
  */
 class Element {
     /**
-     * @param {string} id - DOM element ID.
-     * @param {number} x - Left edge X coordinate (CSS pixels).
-     * @param {number} y - Top edge Y coordinate (CSS pixels).
-     * @param {number} xF - Right edge X coordinate (CSS pixels).
-     * @param {number} yF - Bottom edge Y coordinate (CSS pixels).
-     * @param {number} sceneId - Scene this element belongs to.
+     * @param {string} id DOM element ID.
+     * @param {number} x Left edge X coordinate (CSS pixels).
+     * @param {number} y Top edge Y coordinate (CSS pixels).
+     * @param {number} xF Right edge X coordinate (CSS pixels).
+     * @param {number} yF Bottom edge Y coordinate (CSS pixels).
+     * @param {number} sceneId Scene this element belongs to.
      */
     constructor(id, x, y, xF, yF, sceneId) {
         this.id = id;
@@ -381,8 +391,8 @@ class Element {
 
     /**
      * Returns true if the given point falls within this element's bounding box.
-     * @param {number} mX - X coordinate to test.
-     * @param {number} mY - Y coordinate to test.
+     * @param {number} mX X coordinate to test.
+     * @param {number} mY Y coordinate to test.
      * @returns {boolean}
      */
     isOver(mX, mY) {
@@ -393,8 +403,8 @@ class Element {
 /**
  * Returns the ID of the registered element under the given coordinates in the current scene,
  * or -1 if no element matches.
- * @param {number} x - X coordinate (CSS pixels).
- * @param {number} y - Y coordinate (CSS pixels).
+ * @param {number} x X coordinate (CSS pixels).
+ * @param {number} y Y coordinate (CSS pixels).
  * @returns {string|number} Element ID or -1.
  */
 function detectElement(x, y) {
@@ -404,7 +414,7 @@ function detectElement(x, y) {
 /**
  * Returns the ID of the registered element matching the given DOM ID in the current scene,
  * or -1 if not found.
- * @param {string} name - DOM element ID to look up.
+ * @param {string} name DOM element ID to look up.
  * @returns {string|number} Element ID or -1.
  */
 function detectElementByName(name) {
@@ -415,13 +425,13 @@ function detectElementByName(name) {
  * Adds an element to the local registry and attaches focus/blur listeners.
  * Selection events (change, click) are also attached for combobox, option,
  * radio button, and checkbox components.
- * @param {string} id - DOM element ID.
- * @param {number} x - Left edge X coordinate.
- * @param {number} y - Top edge Y coordinate.
- * @param {number} xF - Right edge X coordinate.
- * @param {number} yF - Bottom edge Y coordinate.
- * @param {number} typeId - Component type constant.
- * @param {number} sceneId - Scene this element belongs to.
+ * @param {string} id DOM element ID.
+ * @param {number} x Left edge X coordinate.
+ * @param {number} y Top edge Y coordinate.
+ * @param {number} xF Right edge X coordinate.
+ * @param {number} yF Bottom edge Y coordinate.
+ * @param {number} typeId Component type constant.
+ * @param {number} sceneId Scene this element belongs to.
  */
 export function registerElement(id, x, y, xF, yF, typeId, sceneId) {
     elements.push(new Element(id, x, y, xF, yF, sceneId));
@@ -435,7 +445,7 @@ export function registerElement(id, x, y, xF, yF, typeId, sceneId) {
 /**
  * Attaches focus and blur tracking listeners to the DOM element with the given ID.
  * Does nothing if the element is not found in the document.
- * @param {string} elementId - DOM element ID.
+ * @param {string} elementId DOM element ID.
  */
 export function addFocusAndBlurEvents(elementId) {
     const element = document.getElementById(elementId);
@@ -450,7 +460,7 @@ export function addFocusAndBlurEvents(elementId) {
  * Attaches change and click tracking listeners to the DOM element with the given ID.
  * Used for interactive selection components (combobox, radio, checkbox).
  * Does nothing if the element is not found in the document.
- * @param {string} elementId - DOM element ID.
+ * @param {string} elementId DOM element ID.
  */
 export function addSelectionEvent(elementId) {
     const element = document.getElementById(elementId);
@@ -570,10 +580,10 @@ function runGazeCalibration() {
 /**
  * Starts webcam-based gaze tracking: asks for participant consent (once per tab
  * session), starts WebGazer, runs calibration (once per tab session), and attaches the
- * gaze listener. Never throws — any failure (library not loaded, camera denied, no
+ * gaze listener. Never throws: any failure (library not loaded, camera denied, no
  * webcam) degrades to a no-op so the rest of the tracking pipeline is unaffected.
  * If WebGazer was already started earlier in this tab session (e.g. a previous scene),
- * this only resumes it — begin() must be called at most once per page load, otherwise
+ * this only resumes it, since begin() must be called at most once per page load, otherwise
  * WebGazer reinitializes its model and camera stream from scratch on every scene.
  * @returns {Promise<void>}
  */
@@ -616,9 +626,9 @@ async function startGazeTracking() {
 
 /**
  * WebGazer gaze callback, throttled to gazeSampleIntervalMs (see tracker-config.js).
- * Builds a tracking item the same way trackWithPointerEvent does and appends it to the
+ * Builds a tracking item the same way trackPointerSample does and appends it to the
  * shared pending list, flushing at TOP_LIMIT like every other event source.
- * @param {{x: number, y: number}|null} data - Predicted gaze point in viewport coordinates.
+ * @param {{x: number, y: number}|null} data Predicted gaze point in viewport coordinates.
  * @returns {void}
  */
 function onGazeData(data) {
@@ -667,8 +677,8 @@ function stopGazeTracking() {
 
 /**
  * Dispatches a DOM event to the tracking pipeline if tracking is active.
- * @param {number} eventType - Event type constant (e.g. EVENT_ON_CLICK).
- * @param {Event} event - Original DOM event providing coordinates and target info.
+ * @param {number} eventType Event type constant (e.g. EVENT_ON_CLICK).
+ * @param {Event} event Original DOM event providing coordinates and target info.
  * @returns {Promise<void>}
  */
 async function trackWithEvent(eventType, event) {
@@ -678,7 +688,7 @@ async function trackWithEvent(eventType, event) {
 /**
  * Dispatches a synthetic event (no DOM event) to the tracking pipeline if tracking is active.
  * Used for events that carry no pointer or keyboard data (e.g. INIT, END markers).
- * @param {number} eventType - Event type constant.
+ * @param {number} eventType Event type constant.
  * @returns {Promise<void>}
  */
 async function trackEvent(eventType) {
@@ -688,8 +698,8 @@ async function trackEvent(eventType) {
 /**
  * Builds a tracking item from the event and appends it to the pending list.
  * Flushes the list to the server when it reaches TOP_LIMIT entries.
- * @param {number} eventType - Event type constant.
- * @param {Event|null} event - DOM event, or null for synthetic events.
+ * @param {number} eventType Event type constant.
+ * @param {Event|null} event DOM event, or null for synthetic events.
  * @returns {Promise<void>}
  */
 async function trackEventOverElement(eventType, event) {
@@ -731,7 +741,7 @@ async function trackEventOverElement(eventType, event) {
  * Starts tracking for the given scene: refreshes experiment status, registers all
  * DOM event listeners, and emits the INIT_TRACKING event.
  * Cancels any previously active tracking session before starting a new one.
- * @param {number} _sceneId - ID of the scene to start tracking.
+ * @param {number} _sceneId ID of the scene to start tracking.
  * @returns {Promise<void>}
  */
 export async function initTracking(_sceneId) {
@@ -741,6 +751,9 @@ export async function initTracking(_sceneId) {
     }
     trackingAbortController = new AbortController();
     const signal = trackingAbortController.signal;
+    pointerSamples.clear();
+    cancelledTouches.clear();
+    touchPointers.clear();
 
     await getExperimentStatus();
     trackingOn = true;
@@ -763,11 +776,16 @@ export async function initTracking(_sceneId) {
     target.addEventListener('keydown', trackEventKeydown, { signal });
     target.addEventListener('keypress', trackEventKeypress, { signal });
     target.addEventListener('keyup', trackEventKeyup, { signal });
-    // Pointer Events API — touch interactions only
+    // Pointer Events API, touch interactions only
     target.addEventListener('pointerdown', trackPointerDown, { signal });
     target.addEventListener('pointerup', trackPointerUp, { signal });
     target.addEventListener('pointermove', trackPointerMove, { signal });
     target.addEventListener('pointercancel', trackPointerCancel, { signal });
+    // Touch Events API, only to follow the touches the browser cancelled as pointers
+    target.addEventListener('touchstart', trackTouchStart, { signal, passive: true });
+    target.addEventListener('touchmove', trackTouchMove, { signal, passive: true });
+    target.addEventListener('touchend', trackTouchEnd, { signal, passive: true });
+    target.addEventListener('touchcancel', trackTouchEnd, { signal, passive: true });
 }
 
 /** @param {MouseEvent} event */ function trackMouseMovement(event) { if (lastPointerType === 'mouse') trackWithEvent(EVENT_ON_MOUSE_MOVE, event).catch(console.error); }
@@ -782,10 +800,10 @@ export async function initTracking(_sceneId) {
 /** @param {KeyboardEvent} event */ function trackEventKeydown(event) { trackWithEvent(EVENT_KEY_DOWN, event).catch(console.error); }
 /** @param {KeyboardEvent} event */ function trackEventKeypress(event) { trackWithEvent(EVENT_KEY_PRESS, event).catch(console.error); }
 /** @param {KeyboardEvent} event */ function trackEventKeyup(event) { trackWithEvent(EVENT_KEY_UP, event).catch(console.error); }
-/** @param {PointerEvent} event */ function trackPointerDown(event) { lastPointerType = event.pointerType; if (event.pointerType !== 'mouse') { trackWithPointerEvent(EVENT_POINTER_DOWN, event).catch(console.error); } }
-/** @param {PointerEvent} event */ function trackPointerUp(event) { lastPointerType = event.pointerType; if (event.pointerType !== 'mouse') { trackWithPointerEvent(EVENT_POINTER_UP, event).catch(console.error); } }
-/** @param {PointerEvent} event */ function trackPointerMove(event) { lastPointerType = event.pointerType; if (event.pointerType !== 'mouse') { trackWithPointerEvent(EVENT_POINTER_MOVE, event).catch(console.error); } }
-/** @param {PointerEvent} event */ function trackPointerCancel(event) { lastPointerType = event.pointerType; if (event.pointerType !== 'mouse') { trackWithPointerEvent(EVENT_POINTER_CANCEL, event).catch(console.error); } }
+/** @param {PointerEvent} event */ function trackPointerDown(event) { trackPointer(EVENT_POINTER_DOWN, event); }
+/** @param {PointerEvent} event */ function trackPointerUp(event) { trackPointer(EVENT_POINTER_UP, event); }
+/** @param {PointerEvent} event */ function trackPointerMove(event) { trackPointer(EVENT_POINTER_MOVE, event); }
+/** @param {PointerEvent} event */ function trackPointerCancel(event) { trackPointer(EVENT_POINTER_CANCEL, event); }
 /** @param {FocusEvent} event */ function trackFocusEvent(event) { trackWithEvent(EVENT_FOCUS, event).catch(console.error); }
 /** @param {FocusEvent} event */ function trackBlurEvent(event) { trackWithEvent(EVENT_BLUR, event).catch(console.error); }
 /** @param {Event} event */ function trackOnChangeSelectionEvent(event) { trackWithEvent(EVENT_ON_CHANGE_SELECTION_OBJECT, event).catch(console.error); }
@@ -796,25 +814,17 @@ export async function initTracking(_sceneId) {
  * background snapshot, flushes remaining events, then navigates to _newPage once
  * all pending requests complete. Also removes the DOM event listeners registered by
  * initTracking (they would otherwise only be removed by the next initTracking call).
+ * A call made while the scene is already ending waits for it instead of ending it again.
  *
- * This does NOT mark the whole experiment as finished — it only ends the current
+ * This does NOT mark the whole experiment as finished: it only ends the current
  * scene. If this is the last page of the experiment, finishExperiment() (in
  * tracker-helpers.js) must also be called once, otherwise the participant's
  * session ID is never removed from localStorage and will be reused on a future visit.
- * @param {string|null} _newPage - URL to navigate to after all data is delivered, or null.
+ * @param {string|null} _newPage URL to navigate to after all data is delivered, or null.
  * @returns {Promise<void>}
  */
 export async function finishTracking(_newPage) {
-    await trackEvent(EVENT_TRACKING_END);
-    trackingOn = false;
-    if (trackingAbortController) {
-        trackingAbortController.abort();
-        trackingAbortController = null;
-    }
-    if (gazeTrackingEnabled) { stopGazeTracking(); }
-    await takeSnapshot(sceneId);
-    await deliverData(list);
-    list = [];
+    await endScene();
     newPage = _newPage;
     checkReadyToLeave();
 }
@@ -850,33 +860,78 @@ function checkReadyToLeave() {
  * Ends tracking for a sub-scene without navigating: emits TRACKING_END, captures a
  * snapshot, and flushes remaining events. Use when transitioning between sub-scenes
  * within the same page. Also removes the DOM event listeners registered by
- * initTracking — call initTracking again before tracking the next sub-scene.
+ * initTracking. Call initTracking again before tracking the next sub-scene.
  * @returns {Promise<void>}
  */
 export async function finishSubsceneTracking() {
-    await trackEvent(EVENT_TRACKING_END);
-    trackingOn = false;
-    if (trackingAbortController) {
-        trackingAbortController.abort();
-        trackingAbortController = null;
-    }
-    if (gazeTrackingEnabled) { stopGazeTracking(); }
-    await takeSnapshot(sceneId);
-    await deliverData(list);
-    list = [];
+    await endScene();
 }
+
+/**
+ * Ends the scene being tracked once, however many times it is called: the page may call
+ * finishTracking again before the first call is done (a button tapped twice, for instance),
+ * and every call would otherwise record its own TRACKING_END, take its own snapshot and send
+ * the same pending events again. Calls made while the scene is ending get the same promise,
+ * and calls made once it has ended resolve at once.
+ * @returns {Promise<void>}
+ */
+function endScene() {
+    if (sceneEnd) return sceneEnd;
+    if (!trackingOn) return Promise.resolve();
+    sceneEnd = (async () => {
+        await flushCancelledTouches();
+        await trackEvent(EVENT_TRACKING_END);
+        trackingOn = false;
+        if (trackingAbortController) {
+            trackingAbortController.abort();
+            trackingAbortController = null;
+        }
+        if (gazeTrackingEnabled) { stopGazeTracking(); }
+        const pending = list;
+        list = [];
+        await takeSnapshot(sceneId);
+        await deliverData(pending);
+    })().finally(() => { sceneEnd = null; });
+    return sceneEnd;
+}
+
+/**
+ * Sends the events still waiting to fill a chunk when the participant hides or leaves the
+ * page, which would otherwise be lost if the scene is never finished. keepalive lets the
+ * request complete after the page is gone. Tracking goes on if the participant comes back.
+ * @returns {void}
+ */
+function deliverPendingOnHide() {
+    if (!emittingData || list.length === 0) return;
+    const pending = list;
+    list = [];
+    for (let i = 0; i < pending.length; i += TOP_LIMIT) {
+        const parametros = {
+            "timezone": getTimezone(),
+            "list": pending.slice(i, i + TOP_LIMIT),
+            "idExperiment": idExperiment,
+            "sessionId": user
+        };
+        postJSON(url, parametros, { keepalive: true }).catch(console.error);
+    }
+}
+
+window.addEventListener('pagehide', deliverPendingOnHide);
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') { deliverPendingOnHide(); }
+});
 
 /**
  * Registers a UI component with the tracker server and adds it to the local element
  * registry so it can be detected by pointer coordinates.
- * @param {number} sceneId - Scene the component belongs to.
- * @param {string} componentId - DOM element ID of the component.
- * @param {number} x - Left edge X coordinate (CSS pixels).
- * @param {number} y - Top edge Y coordinate (CSS pixels).
- * @param {number} xF - Right edge X coordinate (CSS pixels).
- * @param {number} yF - Bottom edge Y coordinate (CSS pixels).
- * @param {number} typeId - Component type constant (e.g. COMPONENT_TEXT_FIELD).
- * @param {string} componentAssociated - ID of a related/parent component, if any.
+ * @param {number} sceneId Scene the component belongs to.
+ * @param {string} componentId DOM element ID of the component.
+ * @param {number} x Left edge X coordinate (CSS pixels).
+ * @param {number} y Top edge Y coordinate (CSS pixels).
+ * @param {number} xF Right edge X coordinate (CSS pixels).
+ * @param {number} yF Bottom edge Y coordinate (CSS pixels).
+ * @param {number} typeId Component type constant (e.g. COMPONENT_TEXT_FIELD).
+ * @param {string} componentAssociated ID of a related/parent component, if any.
  * @returns {Promise<void>}
  */
 export async function registerComponent(sceneId, componentId, x, y, xF, yF, typeId, componentAssociated) {
@@ -909,7 +964,7 @@ export async function registerComponent(sceneId, componentId, x, y, xF, yF, type
  * Sends a single chunk of events to the tracker server with up to 3 automatic retries
  * on failure (delays: 500 ms, 1500 ms, 4000 ms). Updates pendingRequest and
  * eventsDelivered counters and triggers checkReadyToLeave on completion.
- * @param {object[]} chunk - Array of tracking event items to deliver.
+ * @param {object[]} chunk Array of tracking event items to deliver.
  * @returns {Promise<void>}
  */
 async function deliverChunk(chunk) {
@@ -955,15 +1010,163 @@ async function deliverChunk(chunk) {
 }
 
 /**
- * Captures a Pointer Events API event (touch or stylus).
- * Encodes pointer-specific data into existing fields:
- *   keyValueEvent → "pointerType:contactWidth:contactHeight:pointerId"
- *   keyCodeEvent  → Math.round(pressure * 1000)  (0 = no pressure, 1000 = max pressure)
- * @param {number} eventType - Pointer event type constant.
- * @param {PointerEvent} event - Original pointer DOM event.
+ * Captures a Pointer Events API event (touch or stylus); mouse pointers only update
+ * lastPointerType, since the mouse events already record them.
+ * The browser cancels a touch pointer as soon as it takes over the gesture to scroll or
+ * zoom, and reports the cancel at (0, 0), but the finger goes on moving and only the touch
+ * events keep following it. So a cancelled touch is not recorded yet: its moves are taken
+ * from the touch events, and its cancel is recorded where the finger is lifted
+ * (see trackTouchMove and trackTouchEnd).
+ * @param {number} eventType Pointer event type constant.
+ * @param {PointerEvent} event Original pointer DOM event.
+ * @returns {void}
+ */
+function trackPointer(eventType, event) {
+    lastPointerType = event.pointerType;
+    if (event.pointerType === 'mouse') return;
+
+    const pointerId = event.pointerId ?? 0;
+    if (eventType !== EVENT_POINTER_CANCEL) {
+        const sample = pointerSample(event);
+        if (eventType === EVENT_POINTER_UP) {
+            pointerSamples.delete(pointerId);
+        } else {
+            pointerSamples.set(pointerId, sample);
+        }
+        trackPointerSample(eventType, event.pointerType, pointerId, sample).catch(console.error);
+        return;
+    }
+
+    const last = pointerSamples.get(pointerId) ?? pointerSample(event);
+    pointerSamples.delete(pointerId);
+    if (trackingOn && event.pointerType === 'touch' && 'TouchEvent' in window) {
+        cancelledTouches.set(pointerId, last);
+        return;
+    }
+    trackPointerSample(EVENT_POINTER_CANCEL, event.pointerType, pointerId, last).catch(console.error);
+}
+
+/**
+ * Builds a pointer sample from a pointer event.
+ * @param {PointerEvent} event
+ * @returns {{x: number, y: number, clientX: number, clientY: number, width: number, height: number, pressure: number}}
+ */
+function pointerSample(event) {
+    return {
+        x: event.pageX,
+        y: event.pageY,
+        clientX: event.clientX,
+        clientY: event.clientY,
+        width: event.width ?? 0,
+        height: event.height ?? 0,
+        pressure: event.pressure ?? 0,
+    };
+}
+
+/**
+ * Pairs every new touch with the pointer of the same finger, whose pointerdown the
+ * browser has just fired at the same point.
+ * @param {TouchEvent} event
+ * @returns {void}
+ */
+function trackTouchStart(event) {
+    const paired = new Set(touchPointers.values());
+    for (const touch of event.changedTouches) {
+        let nearest;
+        let nearestDistance = Infinity;
+        for (const [pointerId, sample] of pointerSamples) {
+            if (paired.has(pointerId)) continue;
+            const distance = Math.hypot(sample.x - touch.pageX, sample.y - touch.pageY);
+            if (distance < nearestDistance) {
+                nearest = pointerId;
+                nearestDistance = distance;
+            }
+        }
+        if (nearest !== undefined) {
+            touchPointers.set(touch.identifier, nearest);
+            paired.add(nearest);
+        }
+    }
+}
+
+/**
+ * Records the moves of the cancelled touch pointers (see trackPointer) as pointer moves.
+ * @param {TouchEvent} event
+ * @returns {void}
+ */
+function trackTouchMove(event) {
+    if (cancelledTouches.size === 0) return;
+    for (const touch of event.changedTouches) {
+        const pointerId = touchPointers.get(touch.identifier);
+        if (pointerId === undefined || !cancelledTouches.has(pointerId)) continue;
+        const sample = touchSample(touch, cancelledTouches.get(pointerId));
+        cancelledTouches.set(pointerId, sample);
+        trackPointerSample(EVENT_POINTER_MOVE, 'touch', pointerId, sample).catch(console.error);
+    }
+}
+
+/**
+ * Records the cancel of the cancelled touch pointers (see trackPointer) where their finger
+ * is lifted, and forgets the lifted touches.
+ * @param {TouchEvent} event
+ * @returns {void}
+ */
+function trackTouchEnd(event) {
+    for (const touch of event.changedTouches) {
+        const pointerId = touchPointers.get(touch.identifier);
+        touchPointers.delete(touch.identifier);
+        if (pointerId === undefined || !cancelledTouches.has(pointerId)) continue;
+        const sample = touchSample(touch, cancelledTouches.get(pointerId));
+        cancelledTouches.delete(pointerId);
+        trackPointerSample(EVENT_POINTER_CANCEL, 'touch', pointerId, sample).catch(console.error);
+    }
+}
+
+/**
+ * Builds a pointer sample from a touch, keeping the previous contact size and pressure
+ * when the browser does not report them for touches.
+ * @param {Touch} touch
+ * @param {{x: number, y: number, clientX: number, clientY: number, width: number, height: number, pressure: number}} previous
+ * @returns {{x: number, y: number, clientX: number, clientY: number, width: number, height: number, pressure: number}}
+ */
+function touchSample(touch, previous) {
+    return {
+        x: touch.pageX,
+        y: touch.pageY,
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        width: touch.radiusX > 0 ? touch.radiusX * 2 : previous.width,
+        height: touch.radiusY > 0 ? touch.radiusY * 2 : previous.height,
+        pressure: touch.force > 0 ? touch.force : previous.pressure,
+    };
+}
+
+/**
+ * Records the cancel of every touch pointer still being followed, at its last position,
+ * so that the scene does not end with a gesture left open.
  * @returns {Promise<void>}
  */
-async function trackWithPointerEvent(eventType, event) {
+async function flushCancelledTouches() {
+    for (const [pointerId, sample] of cancelledTouches) {
+        await trackPointerSample(EVENT_POINTER_CANCEL, 'touch', pointerId, sample);
+    }
+    cancelledTouches.clear();
+}
+
+/**
+ * Builds a tracking item from a pointer sample and appends it to the pending list.
+ * x and y hold the position on the page. The rest of the pointer data goes in existing fields:
+ *   keyValueEvent: "pointerType:contactWidth:contactHeight:pointerId:clientX:clientY", where
+ *     clientX and clientY are the position on the screen (viewport), which is what shows how
+ *     far the finger moved while it scrolled the page under it
+ *   keyCodeEvent: Math.round(pressure * 1000), from 0 (no pressure) to 1000 (max pressure)
+ * @param {number} eventType Pointer event type constant.
+ * @param {string} pointerType "touch" or "pen".
+ * @param {number} pointerId Pointer the sample belongs to.
+ * @param {{x: number, y: number, clientX: number, clientY: number, width: number, height: number, pressure: number}} sample Position on the page and on the screen, contact size and pressure.
+ * @returns {Promise<void>}
+ */
+async function trackPointerSample(eventType, pointerType, pointerId, sample) {
     if (!trackingOn) return;
 
     const item = {};
@@ -972,10 +1175,10 @@ async function trackWithPointerEvent(eventType, event) {
     item.sessionId = user;
     item.eventType = eventType;
     item.timeStamp = Date.now();
-    item.x = Math.round(event.pageX);
-    item.y = Math.round(event.pageY);
-    item.keyValueEvent = `${event.pointerType}:${Math.round(event.width ?? 0)}:${Math.round(event.height ?? 0)}:${event.pointerId ?? 0}`;
-    item.keyCodeEvent = Math.round((event.pressure ?? 0) * 1000);
+    item.x = Math.round(sample.x);
+    item.y = Math.round(sample.y);
+    item.keyValueEvent = `${pointerType}:${Math.round(sample.width)}:${Math.round(sample.height)}:${pointerId}:${Math.round(sample.clientX)}:${Math.round(sample.clientY)}`;
+    item.keyCodeEvent = Math.round(sample.pressure * 1000);
     item.elementId = detectElement(item.x, item.y);
 
     list.push(item);
@@ -990,7 +1193,7 @@ async function trackWithPointerEvent(eventType, event) {
 /**
  * Splits a list of events into chunks of at most TOP_LIMIT items and delivers them
  * concurrently via deliverChunk.
- * @param {object[]} list - Full list of tracking event items to deliver.
+ * @param {object[]} list Full list of tracking event items to deliver.
  * @returns {Promise<void>}
  */
 async function deliverData(list) {
@@ -1016,9 +1219,9 @@ async function deliverData(list) {
 
 /**
  * Fetches the tracking event list for a session/scene and draws it on the canvas.
- * @param {string} sessionId - User session ID.
- * @param {number} sceneId - Scene ID to retrieve tracking data for.
- * @param {boolean} [showLoading=true] - Whether to show a loading message in the result element.
+ * @param {string} sessionId User session ID.
+ * @param {number} sceneId Scene ID to retrieve tracking data for.
+ * @param {boolean} [showLoading=true] Whether to show a loading message in the result element.
  * @returns {Promise<void>}
  */
 async function getTracking(sessionId, sceneId, showLoading = true) {
@@ -1045,8 +1248,8 @@ async function getTracking(sessionId, sceneId, showLoading = true) {
 /**
  * Fetches and overlays both the background screenshot and the tracking trace on the canvas
  * for the given session and scene. Both requests run concurrently.
- * @param {string} sessionId - User session ID.
- * @param {number} sceneId - Scene ID.
+ * @param {string} sessionId User session ID.
+ * @param {number} sceneId Scene ID.
  * @returns {Promise<void>}
  */
 async function showTrace(sessionId, sceneId) {
@@ -1068,8 +1271,8 @@ async function showTrace(sessionId, sceneId) {
 /**
  * Fetches the background screenshot for a session/scene and draws it on the canvas element
  * with id "myCanvas".
- * @param {string} sessionId - User session ID.
- * @param {number} sceneId - Scene ID.
+ * @param {string} sessionId User session ID.
+ * @param {number} sceneId Scene ID.
  * @returns {Promise<void>}
  */
 async function getBackground(sessionId, sceneId) {
@@ -1102,7 +1305,7 @@ async function getBackground(sessionId, sceneId) {
 /**
  * Parses a JSON tracking response and draws each event as a colored dot on the
  * canvas element with id "myCanvas". Color encodes the event type.
- * @param {string} response - JSON string with a list array of event objects.
+ * @param {string} response JSON string with a list array of event objects.
  */
 function paintTracking(response) {
     const c = document.getElementById("myCanvas");
@@ -1124,7 +1327,7 @@ function paintTracking(response) {
 
 /**
  * Returns the hex color associated with an event type for canvas visualization.
- * @param {number} eventType - Event type constant.
+ * @param {number} eventType Event type constant.
  * @returns {string} CSS hex color string.
  */
 function getColor(eventType) {
@@ -1143,9 +1346,9 @@ function getColor(eventType) {
 
 /**
  * Sends a demographic data value to the tracker server under the specified field name.
- * @param {number} id - Demographic data field ID.
- * @param {string} fieldName - Payload key for the value ("stringValue", "numberValue", or "dateValue").
- * @param {string|number} value - The value to submit.
+ * @param {number} id Demographic data field ID.
+ * @param {string} fieldName Payload key for the value ("stringValue", "numberValue", or "dateValue").
+ * @param {string|number} value The value to submit.
  * @returns {Promise<void>}
  */
 async function postDemographicData(id, fieldName, value) {
@@ -1161,31 +1364,31 @@ async function postDemographicData(id, fieldName, value) {
 
 /**
  * Submits a string demographic data value.
- * @param {number} id - Demographic data field ID.
- * @param {string} value - String value to submit.
+ * @param {number} id Demographic data field ID.
+ * @param {string} value String value to submit.
  * @returns {Promise<void>}
  */
 export async function postNumberDD(id, value) { await postDemographicData(id, "numberValue", value); }
 
 /**
  * Submits a numeric demographic data value.
- * @param {number} id - Demographic data field ID.
- * @param {number} value - Numeric value to submit.
+ * @param {number} id Demographic data field ID.
+ * @param {number} value Numeric value to submit.
  * @returns {Promise<void>}
  */
 export async function postStringDD(id, value) { await postDemographicData(id, "stringValue", value); }
 
 /**
  * Submits a date demographic data value.
- * @param {number} id - Demographic data field ID.
- * @param {string} value - Date value to submit (ISO string or similar).
+ * @param {number} id Demographic data field ID.
+ * @param {string} value Date value to submit (ISO string or similar).
  * @returns {Promise<void>}
  */
 export async function postDateDD(id, value) { await postDemographicData(id, "dateValue", value); }
 
 /**
  * Low-level POST for demographic data. Does nothing if tracking is not emitting.
- * @param {object} parametros - Fully assembled payload to send to the demographic data endpoint.
+ * @param {object} parametros Fully assembled payload to send to the demographic data endpoint.
  * @returns {Promise<void>}
  */
 async function postAJAXDemographicData(parametros) {
