@@ -11,4 +11,6 @@ export default {
   "instruction.3.text.bold": "You must like, comment, and browse through the posts.",
   "end.title": "Finished",
   "end.text": "Thank you for participating!",
+  "shareMessage": "Hi! Could you help us with a scientific research study? It will only take 3 minutes: click the link below and follow the instructions.\n https://guillermodylan.github.io/SocialNetworkInteraction/ \nAnd if you can share it with your friends, that would be great! Thank you so much!",
+  "research": "By clicking Share, you help us advance our research."
 };
