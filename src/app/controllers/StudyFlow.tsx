@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, View } from "react-native";
 import InstructionScreen from "~/src/app/components/InstructionsScreen";
 import FeedScreen from "../(tabs)/index"; // your existing Profile/feed component
@@ -14,6 +14,22 @@ export default function StudyFlow() {
     const [step, setStep] = useState<Step>("intro1");
     const [showButton, setShowButton] = useState(false);
     const { t } = useTranslation();
+
+    function useBeforeUnload(shouldWarn: boolean) {
+        useEffect(() => {
+            if (!shouldWarn) return;
+
+            const handler = (event: BeforeUnloadEvent) => {
+            event.preventDefault();
+            event.returnValue = ""; // required by some browsers
+            };
+
+            window.addEventListener("beforeunload", handler);
+            return () => window.removeEventListener("beforeunload", handler);
+        }, [shouldWarn]);
+    }
+
+    useBeforeUnload(true);
 
     switch (step) {
         case "intro1":
