@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, View } from "react-native";
 import { Audio } from "expo-av";
 import InstructionScreen from "~/src/app/components/InstructionsScreen";
@@ -10,7 +10,13 @@ import { useTranslation } from "react-i18next";
 
 type Step = "intro1" | "instagram" | "intro2" | "tiktok" | "intro3" | "facebook" | "done";
 
+let completionSoundPlaybackInProgress = false;
+
 async function playCompletionSound() {
+    if (completionSoundPlaybackInProgress) return;
+
+    completionSoundPlaybackInProgress = true;
+
     try {
         const { sound } = await Audio.Sound.createAsync(
             require("~/assets/sounds/notification.mp3"),
@@ -19,10 +25,12 @@ async function playCompletionSound() {
 
         sound.setOnPlaybackStatusUpdate((status) => {
             if (status.isLoaded && status.didJustFinish) {
+                completionSoundPlaybackInProgress = false;
                 void sound.unloadAsync();
             }
         });
     } catch {
+        completionSoundPlaybackInProgress = false;
         // Sound feedback should not block the study flow.
     }
 }
@@ -31,7 +39,16 @@ async function playCompletionSound() {
 export default function StudyFlow() {
     const [step, setStep] = useState<Step>("intro1");
     const [showButton, setShowButton] = useState(false);
+    const completionHandledForStep = useRef<Step | null>(null);
     const { t } = useTranslation();
+
+    function handleTasksCompleted(completedStep: Step) {
+        if (completionHandledForStep.current === completedStep) return;
+
+        completionHandledForStep.current = completedStep;
+        void playCompletionSound();
+        setShowButton(true);
+    }
 
     function useBeforeUnload(shouldWarn: boolean) {
         useEffect(() => {
@@ -68,8 +85,7 @@ export default function StudyFlow() {
                         // Placeholder hook — call this when your task-completion
                         // logic decides the user is done with this screen.
                         onTasksCompleted={() => {
-                            void playCompletionSound();
-                            setShowButton(true);
+                            handleTasksCompleted("instagram");
                         }}
                     />
                     {showButton && <Button title={t("btn.continue")} onPress={() => setStep("intro2")} />}
@@ -95,8 +111,7 @@ export default function StudyFlow() {
                 <View className="flex-1">
                     <ForYouFeed
                         onTasksCompleted={() => {
-                            void playCompletionSound();
-                            setShowButton(true);
+                            handleTasksCompleted("tiktok");
                         }}
                     />
                     {showButton && <Button title={t("btn.continue")} onPress={() => setStep("intro3")} />}
@@ -122,8 +137,7 @@ export default function StudyFlow() {
                 <View className="flex-1">
                     <FacebookFeed
                         onTasksCompleted={() => {
-                            void playCompletionSound();
-                            setShowButton(true);
+                            handleTasksCompleted("facebook");
                         }}
                     />
                     {showButton && <Button title={t("btn.continue")} onPress={() => setStep("done")} />}
