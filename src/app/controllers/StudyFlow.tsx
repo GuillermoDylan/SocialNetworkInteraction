@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button, View } from "react-native";
+import { Audio } from "expo-av";
 import InstructionScreen from "~/src/app/components/InstructionsScreen";
 import FeedScreen from "../(tabs)/index"; // your existing Profile/feed component
 import ForYouFeed from "../(tabs)/tiktok"; // your TikTok feed component
@@ -8,6 +9,23 @@ import FacebookFeed from "../(tabs)/facebook";
 import { useTranslation } from "react-i18next";
 
 type Step = "intro1" | "instagram" | "intro2" | "tiktok" | "intro3" | "facebook" | "done";
+
+async function playCompletionSound() {
+    try {
+        const { sound } = await Audio.Sound.createAsync(
+            require("~/assets/sounds/notification.mp3"),
+            { shouldPlay: true },
+        );
+
+        sound.setOnPlaybackStatusUpdate((status) => {
+            if (status.isLoaded && status.didJustFinish) {
+                void sound.unloadAsync();
+            }
+        });
+    } catch {
+        // Sound feedback should not block the study flow.
+    }
+}
 
 
 export default function StudyFlow() {
@@ -49,7 +67,10 @@ export default function StudyFlow() {
                     <FeedScreen
                         // Placeholder hook — call this when your task-completion
                         // logic decides the user is done with this screen.
-                        onTasksCompleted={() => setShowButton(true)}
+                        onTasksCompleted={() => {
+                            void playCompletionSound();
+                            setShowButton(true);
+                        }}
                     />
                     {showButton && <Button title={t("btn.continue")} onPress={() => setStep("intro2")} />}
                 </View>
@@ -73,7 +94,10 @@ export default function StudyFlow() {
             return (
                 <View className="flex-1">
                     <ForYouFeed
-                        onTasksCompleted={() => setShowButton(true)}
+                        onTasksCompleted={() => {
+                            void playCompletionSound();
+                            setShowButton(true);
+                        }}
                     />
                     {showButton && <Button title={t("btn.continue")} onPress={() => setStep("intro3")} />}
                 </View>
@@ -97,7 +121,10 @@ export default function StudyFlow() {
             return (
                 <View className="flex-1">
                     <FacebookFeed
-                        onTasksCompleted={() => setShowButton(true)}
+                        onTasksCompleted={() => {
+                            void playCompletionSound();
+                            setShowButton(true);
+                        }}
                     />
                     {showButton && <Button title={t("btn.continue")} onPress={() => setStep("done")} />}
                 </View>
