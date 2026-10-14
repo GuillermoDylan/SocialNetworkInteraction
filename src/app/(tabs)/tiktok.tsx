@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { View, FlatList, Dimensions, ViewToken, NativeSyntheticEvent, NativeScrollEvent, ActivityIndicator } from "react-native";
+import { View, FlatList, Dimensions, ViewToken, NativeSyntheticEvent, NativeScrollEvent, ActivityIndicator, LayoutChangeEvent } from "react-native";
 import FeedItem from "~/src/app/components/tiktok/FeedItem";
 import CommentsSection from "../components/CommentsSection";
 import Video from "../model/Video";
@@ -34,6 +34,20 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
     const [activePost, setActivePost] = useState<Video | null>(null);
     const [showComments, setShowComments] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
+
+    const [feedSize, setFeedSize] = useState({ width: 0, height: 0 });
+
+    const handleFeedLayout = useCallback((event: LayoutChangeEvent) => {
+        const { width, height } = event.nativeEvent.layout;
+
+        setFeedSize((previous) => {
+            if (previous.width === width && previous.height === height) {
+                return previous;
+            }
+
+            return { width, height };
+        });
+    }, []);
 
     const toggleLike = (id: string) => {
         setLikedPosts((prev) => {
@@ -75,13 +89,18 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
     // first. This avoids relying on the viewability threshold, which can
     // report transient/ambiguous states mid-swipe.
     const onMomentumScrollEnd = useCallback(
-        (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-            const page = Math.round(e.nativeEvent.contentOffset.y / screenHeight);
+        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+            if (feedSize.height === 0) return;
+
+            const page = Math.round(
+                event.nativeEvent.contentOffset.y / feedSize.height
+            );
+
             if (page >= 1) {
                 setScrolled(true);
             }
         },
-        []
+        [feedSize.height]
     );
 
     const [ready, setReady] = useState(false);
@@ -183,7 +202,7 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
                 keyExtractor={(post) => post.id}
                 pagingEnabled
                 showsVerticalScrollIndicator={false}
-                snapToInterval={screenHeight}
+                snapToInterval={feedSize.height}
                 decelerationRate="fast"
                 onViewableItemsChanged={onViewableItemsChanged}
                 viewabilityConfig={viewabilityConfig}
@@ -191,7 +210,7 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
                 getItemLayout={(_, index) => ({
                     length: screenHeight,
                     offset: screenHeight * index,
-                    index,
+                    index, 
                 })}
                 renderItem={({ item, index }) => (
                     <FeedItem
@@ -202,6 +221,8 @@ export default function ForYouFeed({ onTasksCompleted }: FeedScreenProps) {
                         onToggleLike={() => toggleLike(item.id)}
                         onOpenComments={() => openComments(item)}
                         isActive={index === activeIndex}
+                        width={Dimensions.get("window").width}
+                        height={screenHeight}
                     />
                 )}
             />

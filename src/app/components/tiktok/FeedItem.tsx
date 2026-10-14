@@ -8,8 +8,6 @@ import Video from "~/src/app/model/Video";
 import { resolveLocalImageSource } from "~/src/app/utils/localImages";
 import DoubleTapHeart from "../buttons/DoubleTapHeart";
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
-
 type FeedItemProps = {
     video: Video;
     liked: boolean;
@@ -18,6 +16,8 @@ type FeedItemProps = {
     onOpenComments: () => void;
     commentCount: number;
     isActive: boolean;
+    width: number;
+    height: number;
 };
 
 export default function FeedItem({
@@ -28,11 +28,13 @@ export default function FeedItem({
     onOpenComments,
     commentCount,
     isActive,
+    width,
+    height
 }: FeedItemProps) {
 
     const heartActive = useSharedValue(liked ? 1 : 0);
     const doubleTapProgress = useSharedValue(0);
-    const [tapPos, setTapPos] = useState({ x: screenWidth / 2, y: screenHeight / 2 });
+    const [tapPos, setTapPos] = useState({ x: width / 2, y: height / 2 });
     const [isPaused, setIsPaused] = useState(false);
 
     const [showHeart, setShowHeart] = useState(false);
@@ -83,7 +85,7 @@ export default function FeedItem({
     let profileSource = video.user?.image_url.startsWith("http") ? { uri: video.user?.image_url } : resolveLocalImageSource(video.user?.image_url);
 
     return (
-        <View style={{ width: screenWidth, height: screenHeight }} className="bg-black">
+        <View style={{ width: width, height: height }} className="bg-black">
             <Pressable onPress={handleImagePress}>
                 <FeedVideo
                     videoUrl={video.video_url}
@@ -93,8 +95,8 @@ export default function FeedItem({
                     onDoubleTapLike={handleDoubleTapLike}
                     doubleTapProgress={doubleTapProgress}
                     tapPos={tapPos}
-                    width={screenWidth}
-                    height={screenHeight}
+                    width={width}
+                    height={height}
                 />
                 {showHeart && (
                     <DoubleTapHeart

@@ -76,11 +76,14 @@ export default function FeedVideo({
     };
 
     return (
-        <Pressable onPress={handlePress} style={{ flex: 1 }}>
+        <Pressable
+            onPress={handlePress}
+            style={{ width, height, backgroundColor: "black" }}
+        >
             <VideoView
                 player={player}
-                style={{ width, height }}
-                contentFit="cover"
+                style={{ width, height, backgroundColor: "black" }}
+                contentFit="contain"
                 nativeControls={false}
                 allowsFullscreen={false}
                 allowsPictureInPicture={false}
