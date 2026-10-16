@@ -1,10 +1,13 @@
-import { View, Text, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, Pressable, ActivityIndicator, Platform, Modal, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useTranslation } from "react-i18next";
 
 // import { isEmittingData } from "~/assets/tracker/tracker-agent";
 import { useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
+
+
+import qr from "~/assets/images/qr_personalizado.png"
 
 type InstructionScreenProps = {
   title: string;
@@ -15,6 +18,17 @@ type InstructionScreenProps = {
   isFinish?: boolean;
 };
 
+function detectMobileDevice() {
+  if (Platform.OS !== "web" || typeof navigator === "undefined") {
+    return Platform.OS !== "web";
+  }
+
+  const userAgent = navigator.userAgent;
+  const isTouchMac = navigator.maxTouchPoints > 1 && /Macintosh/i.test(userAgent);
+
+  return /Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|Mobile/i.test(userAgent) || isTouchMac;
+}
+
 export default function InstructionScreen({
   title,
   body,
@@ -24,6 +38,7 @@ export default function InstructionScreen({
   isFinish,
 }: InstructionScreenProps) {
   const { t, i18n } = useTranslation();
+  const isMobileDevice = detectMobileDevice();
 
   let [state, setState] = useState(false);
 
@@ -52,7 +67,7 @@ export default function InstructionScreen({
         <Text className="text-base text-gray-700 text-center leading-6">{t(body)}</Text>
         {boldBody && <Text className="text-base text-gray-700 text-center leading-6 font-bold">{t(boldBody)}</Text>}
         {
-          !isFinish && <>
+          !isFinish && <View className="flex flex-row justify-center gap-8 flex-wrap">
             <Pressable onPress={() => toggleLanguage("en")} className="bg-gray-200 rounded-full py-4 items-center mb-3 w-36 mt-4 self-center">
               <Text className="text-black font-bold text-base">English</Text>
             </Pressable>
@@ -62,9 +77,22 @@ export default function InstructionScreen({
             <Pressable onPress={() => toggleLanguage("ch")} className="bg-gray-200 rounded-full py-4 items-center mb-3 w-36 mt-4 self-center">
               <Text className="text-black font-bold text-base">官話</Text>
             </Pressable>
-          </>
+          </View>
         }
 
+        <Modal
+          visible={!isMobileDevice}
+          transparent
+          animationType="fade"
+          onRequestClose={() => undefined}
+        >
+          <View className="flex-1 items-center justify-center bg-black/50 px-6">
+            <View className="rounded-lg bg-white px-6 py-4">
+              <Text className="text-center text-lg font-bold">{t("notMobile")}</Text>
+              <Image source={qr} className="self-center"/> 
+            </View>
+          </View>
+        </Modal>
         {isFinish &&
 
           <div className="mt-4">
@@ -99,7 +127,12 @@ export default function InstructionScreen({
 
       {buttonLabel ? (
         <View className="px-6 pb-10">
-          <Pressable onPress={onContinue} className="bg-black rounded-full py-4 items-center">
+          <Pressable
+            disabled={!isMobileDevice}
+            onPress={isMobileDevice ? onContinue : undefined}
+            className={isMobileDevice ? "bg-black rounded-full py-4 items-center" : "bg-gray-400 rounded-full py-4 items-center"}
+            accessibilityState={{ disabled: !isMobileDevice }}
+          >
             <Text className="text-white font-bold text-base">{t(buttonLabel)}</Text>
           </Pressable>
         </View>

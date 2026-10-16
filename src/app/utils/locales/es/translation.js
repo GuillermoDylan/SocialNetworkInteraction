@@ -22,5 +22,7 @@ export default {
   "end.text": "¡Gracias por participar!",
 
   "shareMessage": "¡Hola! ¿Nos ayudas con una investigación científica? Solo te llevará 3 minutos: haz clic en el siguiente enlace y sigue las instrucciones.\n https://guillermodylan.github.io/SocialNetworkInteraction/ \n¡Y si puedes compartirlo con tus amigos, genial! ¡Muchas gracias!",
-  "research": "Haciendo clic en compartir nos ayudas a avanzar en nuestra investigación."
+  "research": "Haciendo clic en compartir nos ayudas a avanzar en nuestra investigación.",
+
+  "notMobile": "Actualmente estamos realizando este experimento con dispositivos táctiles. Por favor, realiza el experimento en un dispositivo móvil, agradecemos mucho tu compresión."
 };

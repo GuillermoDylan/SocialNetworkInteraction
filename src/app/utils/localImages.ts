@@ -103,6 +103,7 @@ import img99 from "~/assets/images/IMG_96.jpeg";
 import img100 from "~/assets/images/IMG_97.jpeg";
 import img101 from "~/assets/images/IMG_98.jpeg";
 import img102 from "~/assets/images/IMG_99.jpeg";
+import img103 from "~/assets/images/qr_personalizado.png";
 
 import cat from "~/assets/videos/cat.mp4";
 import VID_1 from "~/assets/videos/VID_1.mp4";
@@ -217,6 +218,7 @@ const localImageMap: Record<string, ImageSourcePropType> = {
   IMG_97: img100,
   IMG_98: img101,
   IMG_99: img102,
+  qr_personalizado: img103,
 };
 
 const localVideoMap: Record<string, number> = {

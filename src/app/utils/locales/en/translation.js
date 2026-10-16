@@ -12,5 +12,6 @@ export default {
   "end.title": "Finished",
   "end.text": "Thank you for participating!",
   "shareMessage": "Hi! Could you help us with a scientific research study? It will only take 3 minutes: click the link below and follow the instructions.\n https://guillermodylan.github.io/SocialNetworkInteraction/ \nAnd if you can share it with your friends, that would be great! Thank you so much!",
-  "research": "By clicking Share, you help us advance our research."
+  "research": "By clicking Share, you help us advance our research.",
+  "notMobile": "We are currently conducting this experiment with touch devices. Please, open this experiment in your mobile phone, we appreciate your understanding."
 };
