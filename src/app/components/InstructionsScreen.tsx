@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ActivityIndicator, Platform, Modal, Image } from "react-native";
+import { View, Text, Pressable, ActivityIndicator, Platform, Modal, Image, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useTranslation } from "react-i18next";
 
@@ -88,7 +88,11 @@ export default function InstructionScreen({
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <View className="flex-1 justify-center px-6">
+      <ScrollView
+        className="flex-1 px-6"
+        contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingBottom: 24 }}
+        keyboardShouldPersistTaps="handled"
+      >
         <Text className="text-2xl font-bold text-center mb-4">{t(title)}</Text>
         <Text className="text-base text-gray-700 text-center leading-6">{t(body)}</Text>
         {boldBody && <Text className="text-base text-gray-700 text-center leading-6 font-bold">{t(boldBody)}</Text>}
@@ -193,7 +197,7 @@ export default function InstructionScreen({
 
         {isFinish && state &&
           <><Text className="text-center font-bold text-black text-base pt-2 pb-2">Do not close the page. Please wait.</Text><ActivityIndicator size="large" /></>}
-      </View>
+      </ScrollView>
 
       {buttonLabel ? (
         <View className="px-6 pb-10">
