@@ -41,7 +41,7 @@ export default function FeedScreen({ onTasksCompleted }: FeedScreenProps) {
                     await startExperiment();
                     await initTracking(0);
                     var edad = localStorage.getItem("edad")
-                    var gender = localStorage.getItem("gener")
+                    var gender = localStorage.getItem("gender")
                     if(edad){
                         registerEdad(edad);
                     }
