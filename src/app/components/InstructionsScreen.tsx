@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 // import { isEmittingData } from "~/assets/tracker/tracker-agent";
 import { useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import {registerSexo, registerEdad} from "~/assets/tracker/tracker-agent";
 
 
 import qr from "~/assets/images/qr_personalizado.png"
@@ -16,6 +17,7 @@ type InstructionScreenProps = {
   buttonLabel?: string;
   onContinue: () => void;
   isFinish?: boolean;
+  isFirst?: boolean;
 };
 
 function detectMobileDevice() {
@@ -36,11 +38,35 @@ export default function InstructionScreen({
   buttonLabel,
   onContinue,
   isFinish,
+  isFirst
 }: InstructionScreenProps) {
   const { t, i18n } = useTranslation();
   const isMobileDevice = detectMobileDevice();
 
   let [state, setState] = useState(false);
+  const [gender, setGender] = useState<string | null>(null);
+  const [birthDate, setBirthDate] = useState<Date | null>(null);
+  const canContinue = !isFirst || (gender !== null && birthDate !== null);
+
+  const formatBirthDate = (date: Date | null) => {
+    if (!date) {
+      return "";
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const today = new Date();
+  const minBirthDate = formatBirthDate(new Date(today.getFullYear() - 45, today.getMonth(), today.getDate()));
+  const maxBirthDate = formatBirthDate(new Date(today.getFullYear() - 12, today.getMonth(), today.getDate()));
+
+  const handleBirthDateChange = (selectedDate: Date) => {
+    setBirthDate(selectedDate);
+    localStorage.setItem("edad", (today.getFullYear() - selectedDate.getFullYear()).toString())
+  };
 
   const toggleLanguage = (lang: string) => {
     i18n.changeLanguage(lang);
@@ -67,16 +93,60 @@ export default function InstructionScreen({
         <Text className="text-base text-gray-700 text-center leading-6">{t(body)}</Text>
         {boldBody && <Text className="text-base text-gray-700 text-center leading-6 font-bold">{t(boldBody)}</Text>}
         {
-          !isFinish && <View className="flex flex-row justify-center gap-8 flex-wrap">
-            <Pressable onPress={() => toggleLanguage("en")} className="bg-gray-200 rounded-full py-4 items-center mb-3 w-36 mt-4 self-center">
+          !isFinish && <View className="flex flex-row justify-center gap-2 flex-wrap mb-8">
+            <Pressable onPress={() => toggleLanguage("en")} className="bg-gray-200 rounded-full py-4 items-center w-36 mt-4 self-center">
               <Text className="text-black font-bold text-base">English</Text>
             </Pressable>
-            <Pressable onPress={() => toggleLanguage("es")} className="bg-gray-200 rounded-full py-4 items-center mb-3 w-36 mt-4 self-center">
+            <Pressable onPress={() => toggleLanguage("es")} className="bg-gray-200 rounded-full py-4 items-center w-36 mt-4 self-center">
               <Text className="text-black font-bold text-base">Español</Text>
             </Pressable>
-            <Pressable onPress={() => toggleLanguage("ch")} className="bg-gray-200 rounded-full py-4 items-center mb-3 w-36 mt-4 self-center">
+            <Pressable onPress={() => toggleLanguage("ch")} className="bg-gray-200 rounded-full py-4 items-center w-36 mt-4 self-center">
               <Text className="text-black font-bold text-base">官話</Text>
             </Pressable>
+          </View>
+        }
+
+        {
+          isFirst &&
+          <View className="gap-4">
+            <View className="flex items-center my-4">
+              <Text className="mb-2 text-lg font-bold text-gray-700">{t("gender")}</Text>
+              <View className="flex-row justify-center gap-4">
+                {["male", "female", "other"].map((option) => (
+                  <Pressable
+                    key={option}
+                    onPress={() => {
+                      setGender(option);
+                      localStorage.setItem("gender", option)
+                    }}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: gender === option }}
+                    className="flex-row items-center gap-2"
+                  >
+                    <View className={`h-5 w-5 rounded-full border-2 ${gender === option ? "border-black bg-black" : "border-gray-400"}`} />
+                    <Text className="text-base text-gray-700">{t(option)}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+           <View className="flex items-center my-4">
+              <Text className="mb-2 text-lg font-bold text-gray-700">{t("age")}</Text>
+              <input
+                  type="date"
+                  value={formatBirthDate(birthDate)}
+                  min={minBirthDate}
+                  max={maxBirthDate}
+                  onChange={(event) => {
+                    const [year, month, day] = event.target.value.split("-").map(Number);
+                    if (year && month && day) {
+                      handleBirthDateChange(new Date(year, month - 1, day));
+                    }
+                  }}
+                  aria-label="Birthday"
+                  className="h-10 w-40 rounded border border-gray-300 px-3 text-center"
+                />
+            </View>
           </View>
         }
 
@@ -128,10 +198,10 @@ export default function InstructionScreen({
       {buttonLabel ? (
         <View className="px-6 pb-10">
           <Pressable
-            disabled={!isMobileDevice}
-            onPress={isMobileDevice ? onContinue : undefined}
-            className={isMobileDevice ? "bg-black rounded-full py-4 items-center" : "bg-gray-400 rounded-full py-4 items-center"}
-            accessibilityState={{ disabled: !isMobileDevice }}
+            disabled={!isMobileDevice || !canContinue}
+            onPress={isMobileDevice && canContinue ? onContinue : undefined}
+            className={isMobileDevice && canContinue ? "bg-black rounded-full py-4 items-center" : "bg-gray-400 rounded-full py-4 items-center"}
+            accessibilityState={{ disabled: !isMobileDevice || !canContinue }}
           >
             <Text className="text-white font-bold text-base">{t(buttonLabel)}</Text>
           </Pressable>

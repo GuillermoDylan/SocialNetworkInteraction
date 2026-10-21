@@ -21,6 +21,10 @@ export default {
   "shareMessage": "你好！你愿意帮助我们参与一项科学研究吗？只需要3分钟：点击下面的链接并按照说明操作。\n https://guillermodylan.github.io/SocialNetworkInteraction/ \n如果你能分享给朋友们，那就更好了！非常感谢！",
   "research": "点击“分享”按钮，帮助我们推进这项研究。",
 
-  "notMobile": "我们目前正在用触摸设备进行这个实验。请在手机上打开这个实验，感谢您的理解。"
-
+  "notMobile": "我们目前正在用触摸设备进行这个实验。请在手机上打开这个实验，感谢您的理解。",
+  "gender": "性別",
+  "male": "男性",
+  "female": "女性",
+  "other": "其他",
+  "age": "出生日期",
 };

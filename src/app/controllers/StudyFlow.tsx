@@ -189,6 +189,7 @@ export default function StudyFlow() {
                     boldBody="instruction.1.text.bold"
                     buttonLabel="btn.continue"
                     onContinue={() => setStep("instagram")}
+                    isFirst={true}
                 />
             );
 

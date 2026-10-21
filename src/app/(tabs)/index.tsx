@@ -2,7 +2,7 @@ import { ActivityIndicator, FlatList, View } from "react-native";
 import posts from "~/assets/data/posts.json"
 import PostListItem from "../components/PostListItem";
 import { useEffect, useState } from "react";
-import { initTracking, startExperiment, finishSubsceneTracking } from "~/assets/tracker/tracker-agent";
+import { initTracking, startExperiment, finishSubsceneTracking, registerEdad, registerSexo } from "~/assets/tracker/tracker-agent";
 
 import { trackingActive } from "../utils/contants";
 
@@ -40,6 +40,14 @@ export default function FeedScreen({ onTasksCompleted }: FeedScreenProps) {
                 if (trackingActive) {
                     await startExperiment();
                     await initTracking(0);
+                    var edad = localStorage.getItem("edad")
+                    var gender = localStorage.getItem("gener")
+                    if(edad){
+                        registerEdad(edad);
+                    }
+                    if(gender){
+                        registerSexo(gender);
+                    }
                 }
                 // await registerID(uuidva4());
             } catch (error) {
