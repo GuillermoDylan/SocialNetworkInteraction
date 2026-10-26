@@ -19,4 +19,5 @@ export default {
   "female": "Female",
   "other": "Other",
   "age": "Birthdate",
+  "trackingOff": "The experiment is not available right now, please try again later.",
 };

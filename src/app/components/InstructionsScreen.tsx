@@ -3,12 +3,12 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { useTranslation } from "react-i18next";
 
 // import { isEmittingData } from "~/assets/tracker/tracker-agent";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import {registerSexo, registerEdad} from "~/assets/tracker/tracker-agent";
 
 
 import qr from "~/assets/images/qr_personalizado.png"
+import { isExperimentReachable } from "~/assets/tracker/tracker-agent";
 
 type InstructionScreenProps = {
   title: string;
@@ -44,9 +44,10 @@ export default function InstructionScreen({
   const isMobileDevice = detectMobileDevice();
 
   let [state, setState] = useState(false);
-  const [gender, setGender] = useState<string | null>(null);
+  const [gender, setGender] = useState<string | null>('male');
   const [birthDate, setBirthDate] = useState<Date | null>(null);
-  const canContinue = !isFirst || (gender !== null && birthDate !== null);
+  const [canContinue, setCanContinue] = useState<boolean>(!isFirst || (birthDate !== null));
+  const [isTrackingAvailable, setTrackingAvailable] = useState<boolean>(true);
 
   const formatBirthDate = (date: Date | null) => {
     if (!date) {
@@ -66,6 +67,7 @@ export default function InstructionScreen({
   const handleBirthDateChange = (selectedDate: Date) => {
     setBirthDate(selectedDate);
     localStorage.setItem("edad", (today.getFullYear() - selectedDate.getFullYear()).toString())
+    setCanContinue(!isFirst || (gender !== null))
   };
 
   const toggleLanguage = (lang: string) => {
@@ -85,6 +87,17 @@ export default function InstructionScreen({
   const handleInstaShare = () => {
     window.open(`https://www.instagram.com/`, "_blank");
   };
+  
+  const checkNextScreen = async () => {
+    var status = await isExperimentReachable();
+    if (status){
+      setTrackingAvailable(true);
+      onContinue();
+    } else {
+      setCanContinue(false);
+      setTrackingAvailable(false);
+    }
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -122,6 +135,7 @@ export default function InstructionScreen({
                     onPress={() => {
                       setGender(option);
                       localStorage.setItem("gender", option)
+                      setCanContinue(!isFirst || (gender !== null && birthDate !== null))
                     }}
                     accessibilityRole="radio"
                     accessibilityState={{ selected: gender === option }}
@@ -134,22 +148,22 @@ export default function InstructionScreen({
               </View>
             </View>
 
-           <View className="flex items-center my-4">
+            <View className="flex items-center my-4">
               <Text className="mb-2 text-lg font-bold text-gray-700">{t("age")}</Text>
               <input
-                  type="date"
-                  value={formatBirthDate(birthDate)}
-                  min={minBirthDate}
-                  max={maxBirthDate}
-                  onChange={(event) => {
-                    const [year, month, day] = event.target.value.split("-").map(Number);
-                    if (year && month && day) {
-                      handleBirthDateChange(new Date(year, month - 1, day));
-                    }
-                  }}
-                  aria-label="Birthday"
-                  className="h-10 w-40 rounded border border-gray-300 px-3 text-center"
-                />
+                type="date"
+                value={formatBirthDate(birthDate)}
+                min={minBirthDate}
+                max={maxBirthDate}
+                onChange={(event) => {
+                  const [year, month, day] = event.target.value.split("-").map(Number);
+                  if (year && month && day) {
+                    handleBirthDateChange(new Date(year, month - 1, day));
+                  }
+                }}
+                aria-label="Birthday"
+                className="h-10 w-40 rounded border border-gray-300 px-3 text-center"
+              />
             </View>
           </View>
         }
@@ -163,7 +177,7 @@ export default function InstructionScreen({
           <View className="flex-1 items-center justify-center bg-black/50 px-6">
             <View className="rounded-lg bg-white px-6 py-4">
               <Text className="text-center text-lg font-bold">{t("notMobile")}</Text>
-              <Image source={qr} className="self-center"/> 
+              <Image source={qr} className="self-center" />
             </View>
           </View>
         </Modal>
@@ -197,13 +211,27 @@ export default function InstructionScreen({
 
         {isFinish && state &&
           <><Text className="text-center font-bold text-black text-base pt-2 pb-2">Do not close the page. Please wait.</Text><ActivityIndicator size="large" /></>}
+
       </ScrollView>
+
+      <Modal
+          visible={!isTrackingAvailable}
+          transparent
+          animationType="fade"
+          onRequestClose={() => undefined}
+        >
+          <View className="flex-1 items-center justify-center bg-black/50 px-6">
+            <View className="rounded-lg bg-white px-6 py-4">
+              <Text className="text-center text-lg font-bold">{t("trackingOff")}</Text>
+            </View>
+          </View>
+        </Modal>
 
       {buttonLabel ? (
         <View className="px-6 pb-10">
           <Pressable
             disabled={!isMobileDevice || !canContinue}
-            onPress={isMobileDevice && canContinue ? onContinue : undefined}
+            onPress={isMobileDevice && canContinue ? checkNextScreen : undefined}
             className={isMobileDevice && canContinue ? "bg-black rounded-full py-4 items-center" : "bg-gray-400 rounded-full py-4 items-center"}
             accessibilityState={{ disabled: !isMobileDevice || !canContinue }}
           >

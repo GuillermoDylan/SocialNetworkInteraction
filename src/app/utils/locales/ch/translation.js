@@ -27,4 +27,5 @@ export default {
   "female": "女性",
   "other": "其他",
   "age": "出生日期",
+  "trackingOff": "实验目前无法进行，请稍后再试。",
 };

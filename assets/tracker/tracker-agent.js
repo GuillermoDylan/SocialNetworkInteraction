@@ -359,6 +359,16 @@ async function getExperimentStatus() {
     }
 }
 
+export async function isExperimentReachable(){
+    try {
+        const response = await fetch(urlExperimentStatus);
+        if (!response.ok) return false;
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 /**
  * Manages the registration and detection of interactive HTML elements on the interface.
  */
