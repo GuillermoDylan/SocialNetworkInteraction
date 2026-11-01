@@ -87,10 +87,10 @@ export default function InstructionScreen({
   const handleInstaShare = () => {
     window.open(`https://www.instagram.com/`, "_blank");
   };
-  
+
   const checkNextScreen = async () => {
     var status = await isExperimentReachable();
-    if (status){
+    if (status) {
       setTrackingAvailable(true);
       onContinue();
     } else {
@@ -98,6 +98,13 @@ export default function InstructionScreen({
       setTrackingAvailable(false);
     }
   }
+
+  const languages = [
+    { code: "en", label: "English" },
+    { code: "es", label: "Español" },
+    { code: "zh", label: "官話" },
+  ];
+
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -111,15 +118,16 @@ export default function InstructionScreen({
         {boldBody && <Text className="text-base text-gray-700 text-center leading-6 font-bold">{t(boldBody)}</Text>}
         {
           !isFinish && <View className="flex flex-row justify-center gap-2 flex-wrap mb-8">
-            <Pressable onPress={() => toggleLanguage("en")} className="bg-gray-200 rounded-full py-4 items-center w-36 mt-4 self-center">
-              <Text className="text-black font-bold text-base">English</Text>
-            </Pressable>
-            <Pressable onPress={() => toggleLanguage("es")} className="bg-gray-200 rounded-full py-4 items-center w-36 mt-4 self-center">
-              <Text className="text-black font-bold text-base">Español</Text>
-            </Pressable>
-            <Pressable onPress={() => toggleLanguage("ch")} className="bg-gray-200 rounded-full py-4 items-center w-36 mt-4 self-center">
-              <Text className="text-black font-bold text-base">官話</Text>
-            </Pressable>
+            {languages.map(({ code, label }) => (
+              <Pressable
+                key={code}
+                onPress={() => toggleLanguage(code)}
+                className={`rounded-full py-4 items-center w-36 mt-4 self-center ${i18n.language === code ? "bg-blue-300" : "bg-gray-200"
+                  }`}
+              >
+                <Text className="text-black font-bold text-base">{label}</Text>
+              </Pressable>
+            ))}
           </View>
         }
 
@@ -181,6 +189,7 @@ export default function InstructionScreen({
             </View>
           </View>
         </Modal>
+        
         {isFinish &&
 
           <div className="mt-4">
@@ -215,17 +224,17 @@ export default function InstructionScreen({
       </ScrollView>
 
       <Modal
-          visible={!isTrackingAvailable}
-          transparent
-          animationType="fade"
-          onRequestClose={() => undefined}
-        >
-          <View className="flex-1 items-center justify-center bg-black/50 px-6">
-            <View className="rounded-lg bg-white px-6 py-4">
-              <Text className="text-center text-lg font-bold">{t("trackingOff")}</Text>
-            </View>
+        visible={!isTrackingAvailable}
+        transparent
+        animationType="fade"
+        onRequestClose={() => undefined}
+      >
+        <View className="flex-1 items-center justify-center bg-black/50 px-6">
+          <View className="rounded-lg bg-white px-6 py-4">
+            <Text className="text-center text-lg font-bold">{t("trackingOff")}</Text>
           </View>
-        </Modal>
+        </View>
+      </Modal>
 
       {buttonLabel ? (
         <View className="px-6 pb-10">

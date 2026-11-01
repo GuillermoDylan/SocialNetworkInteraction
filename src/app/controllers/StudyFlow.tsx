@@ -132,13 +132,16 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: "rgba(0, 0, 0, 0.55)",
+        width: "100%"
     },
     buttonContainer: {
         alignItems: "center",
         justifyContent: "center",
+        width: 300,
     },
     button: {
         zIndex: 1,
+        width: 300,
     },
     particle: {
         position: "absolute",
@@ -169,8 +172,8 @@ export default function StudyFlow() {
             if (!shouldWarn) return;
 
             const handler = (event: BeforeUnloadEvent) => {
-            event.preventDefault();
-            event.returnValue = ""; // required by some browsers
+                event.preventDefault();
+                event.returnValue = ""; // required by some browsers
             };
 
             window.addEventListener("beforeunload", handler);
