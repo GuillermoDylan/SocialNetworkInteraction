@@ -1,4 +1,4 @@
-{
+export default {
   "expo": {
     "name": "Instagram",
     "scheme": "instagramMockup",
@@ -14,8 +14,10 @@
         "ITSAppUsesNonExemptEncryption": false
       }
     },
-    "experiments": {
-      "baseUrl": "/SocialNetworkInteraction"
+    experiments: {
+      baseUrl: process.env.GITHUB_PAGES
+        ? "/SocialNetworkInteraction"
+        : ""
     },
     "android": {
       "adaptiveIcon": {
